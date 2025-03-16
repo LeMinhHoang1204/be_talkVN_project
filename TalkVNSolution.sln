@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkVN.Infrastructure", "src\TalkVN.Infrastructure\TalkVN.Infrastructure.csproj", "{D7E66971-269F-43B2-B31E-1BCA2C91AD94}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkVN.WebAPI", "src\TalkVN.WebAPI\TalkVN.WebAPI.csproj", "{D209FC8F-8470-46C1-934B-0FA7A203C246}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkVN.Application", "src\TalkVN.Application\TalkVN.Application.csproj", "{4D59AAD4-48B5-4406-A701-168D7D0CB06B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkVN.DataAccess", "src\TalkVN.DataAccess\TalkVN.DataAccess.csproj", "{E7AEAAD5-EEEA-4978-8201-D0064F45AF9E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TalkVN.Domain", "src\TalkVN.Domain\TalkVN.Domain.csproj", "{EB8C3E1E-3ECF-4C0E-A804-E0BF1B967A61}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "DockerCompose", "docker\DockerCompose\DockerCompose.dcproj", "{37FE7C74-3803-4E83-A00F-09A51F680D0A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7E66971-269F-43B2-B31E-1BCA2C91AD94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7E66971-269F-43B2-B31E-1BCA2C91AD94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7E66971-269F-43B2-B31E-1BCA2C91AD94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7E66971-269F-43B2-B31E-1BCA2C91AD94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D209FC8F-8470-46C1-934B-0FA7A203C246}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D209FC8F-8470-46C1-934B-0FA7A203C246}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D209FC8F-8470-46C1-934B-0FA7A203C246}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D209FC8F-8470-46C1-934B-0FA7A203C246}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D59AAD4-48B5-4406-A701-168D7D0CB06B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D59AAD4-48B5-4406-A701-168D7D0CB06B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D59AAD4-48B5-4406-A701-168D7D0CB06B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D59AAD4-48B5-4406-A701-168D7D0CB06B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7AEAAD5-EEEA-4978-8201-D0064F45AF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7AEAAD5-EEEA-4978-8201-D0064F45AF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7AEAAD5-EEEA-4978-8201-D0064F45AF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7AEAAD5-EEEA-4978-8201-D0064F45AF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB8C3E1E-3ECF-4C0E-A804-E0BF1B967A61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB8C3E1E-3ECF-4C0E-A804-E0BF1B967A61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB8C3E1E-3ECF-4C0E-A804-E0BF1B967A61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB8C3E1E-3ECF-4C0E-A804-E0BF1B967A61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37FE7C74-3803-4E83-A00F-09A51F680D0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37FE7C74-3803-4E83-A00F-09A51F680D0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37FE7C74-3803-4E83-A00F-09A51F680D0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37FE7C74-3803-4E83-A00F-09A51F680D0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8D92082-8185-4DE1-9243-36EFBE7514C3}
+	EndGlobalSection
+EndGlobal

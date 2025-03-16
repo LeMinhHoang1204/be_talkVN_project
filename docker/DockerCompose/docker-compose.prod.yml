@@ -1,0 +1,21 @@
+﻿services:
+  talkvn.webapi:
+    image: ${DOCKER_REGISTRY-}talkvnwebapi
+    build:
+      context: ../../
+      dockerfile: src/TalkVN.WebAPI/Dockerfile
+    ports:
+      - "80:8080"
+      - "443:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/talkvn.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=talkvn
+    env_file:
+      - ../../src/TalkVN.WebAPI/.env
+    networks:
+      - productnetwork
+    restart: unless-stopped
+
+networks:
+  productnetwork:
