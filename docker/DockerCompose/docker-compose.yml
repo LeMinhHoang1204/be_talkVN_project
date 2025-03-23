@@ -1,36 +1,41 @@
-﻿version: "3.4"
-
-services:
-  talkvn.webapi:
-    image: ${DOCKER_REGISTRY-}talkvnwebapi
-    build:
-      context: ../../
-      dockerfile: src/TalkVN.WebAPI/Dockerfile
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    depends_on:
-      - mysql
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    networks:
-      - productnetwork
-    restart: on-failure
-
-  mysql:
-    image: mysql:8.0.39
-    environment:
-      MYSQL_ROOT_PASSWORD: "Password12345!"
-      MYSQL_DATABASE: talkvndb
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysqlvolumn:/var/lib/mysql
-    networks:
-      - productnetwork
-
-networks:
-  productnetwork:
-
-volumes:
-  mysqlvolumn:
+﻿  version: "3.4"
+  
+  services:
+    talkvn.webapi:
+      image: ${DOCKER_REGISTRY-}talkvnwebapi
+      build:
+        context: ../../
+        dockerfile: src/TalkVN.WebAPI/Dockerfile
+      ports:
+        - "8084:8080"
+        - "8085:8081"
+      depends_on:
+        - mysql
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+#        - DOTNET_USER_SECRETS=/app/secrets
+#      volumes:
+#        - ./secrets:/app/secrets
+      networks:
+        - productnetwork
+      restart: on-failure
+      env_file:
+        - ../../src/TalkVN.WebAPI/.env
+  
+    mysql:
+      image: mysql:8.0.39
+      environment:
+        MYSQL_ROOT_PASSWORD: "Password12345!"
+        MYSQL_DATABASE: talkvndb
+      ports:
+        - "3306:3306"
+      volumes:
+        - mysqlvolumn:/var/lib/mysql
+      networks:
+        - productnetwork
+  
+  networks:
+    productnetwork:
+  
+  volumes:
+    mysqlvolumn:

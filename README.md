@@ -42,7 +42,6 @@ A backend services for a social networking application, built with `.NET Core` a
 
    ```bash
    git clone https://github.com/LeMinhHoang1204/be_talkVN_project.git
-   cd chit-chat-backend
    ```
 
 2. **Set up environment variables**:

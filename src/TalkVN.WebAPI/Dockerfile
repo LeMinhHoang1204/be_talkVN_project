@@ -32,8 +32,8 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 # Copy SSL certificate if Production
-ARG ENVIRONMENT=Development
-COPY ["src/TalkVN.WebAPI/chitchat.pfx", "/app/chitchat.pfx"]
-RUN if [ "$ENVIRONMENT" = "Production" ]; then cp /app/chitchat.pfx /app/chitchat.pfx; fi
+#ARG ENVIRONMENT=Development
+#COPY ["src/TalkVN.WebAPI/chitchat.pfx", "/app/chitchat.pfx"]
+#RUN if [ "$ENVIRONMENT" = "Production" ]; then cp /app/chitchat.pfx /app/chitchat.pfx; fi
 
 ENTRYPOINT ["dotnet", "TalkVN.WebAPI.dll"]
