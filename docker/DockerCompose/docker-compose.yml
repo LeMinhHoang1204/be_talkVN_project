@@ -18,7 +18,7 @@
 #        - ./secrets:/app/secrets
       networks:
         - productnetwork
-      restart: on-failure
+#      restart: on-failure
       env_file:
         - ../../src/TalkVN.WebAPI/.env
   

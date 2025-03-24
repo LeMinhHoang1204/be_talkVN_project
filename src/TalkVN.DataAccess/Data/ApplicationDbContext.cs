@@ -11,6 +11,9 @@ using TalkVN.Domain.Identity;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
+using TalkVN.Domain.Entities.SystemEntities.Group;
+using TalkVN.Domain.Entities.SystemEntities.Relationships;
+
 namespace TalkVN.DataAccess.Data
 {
     public class ApplicationDbContext : IdentityDbContext<UserApplication, ApplicationRole, string>
@@ -32,6 +35,9 @@ namespace TalkVN.DataAccess.Data
         public DbSet<PostNotification> PostNotifications { get; set; }
         public DbSet<CommentNotification> CommentNotifications { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
+
+        public  DbSet<Group> Groups { get; set; }
+        public DbSet<UserGroupRole> UserGroupRoles { get; set; }
 
         public DbSet<Profile> Profiles { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
