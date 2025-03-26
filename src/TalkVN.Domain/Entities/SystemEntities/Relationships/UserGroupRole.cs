@@ -1,6 +1,6 @@
 ﻿namespace TalkVN.Domain.Entities.SystemEntities.Relationships
 {
-    public class UserGroupRole : BaseAuditedEntity
+    public class UserGroupRole : BaseEntity
     {
         public string UserId { get; set; }
 

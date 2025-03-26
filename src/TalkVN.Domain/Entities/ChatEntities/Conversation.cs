@@ -1,4 +1,4 @@
-using TalkVN.Domain.Entities.ChatEntities;
+﻿using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Entities.SystemEntities.Group;
 
 public class Conversation : BaseAuditedEntity
@@ -13,8 +13,9 @@ public class Conversation : BaseAuditedEntity
     public string ConversationType { get; set; }
 
     public Guid? GroupId { get; set; }
-    public Group Group { get; set; }
 
+
+    public Group? Group { get; set; }
     public IEnumerable<Message> Messages { get; set; }
     public IEnumerable<ConversationDetail> ConversationDetails { get; set; }
 }

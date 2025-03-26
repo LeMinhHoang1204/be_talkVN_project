@@ -29,6 +29,13 @@ namespace TalkVN.DataAccess.Configurations
                 .WithOne(cd => cd.Conversation)
                 .HasForeignKey(cd => cd.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure relationship with Group
+            modelBuilder
+                .HasOne(c => c.Group)
+                .WithMany(g => g.Conversations)
+                .HasForeignKey(c => c.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

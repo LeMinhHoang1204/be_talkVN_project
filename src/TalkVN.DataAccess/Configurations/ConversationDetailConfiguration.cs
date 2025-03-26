@@ -15,8 +15,14 @@ namespace TalkVN.DataAccess.Configurations
             modelBuilder
                 .HasOne(m => m.Conversation)
                 .WithMany(c => c.ConversationDetails)
-                .HasForeignKey(m => m.ConversationId)
-            ;
+                .HasForeignKey(m => m.ConversationId);
+
+            // Configure relationship with User
+            modelBuilder
+                .HasOne(m => m.User)
+                .WithMany(u => u.ConversationDetails)
+                .HasForeignKey(m => m.UserId);
+
         }
     }
 }

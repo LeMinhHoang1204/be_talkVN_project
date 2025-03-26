@@ -2,6 +2,7 @@ namespace TalkVN.Domain.Entities.SystemEntities.Notification
 {
     public abstract class Notification : BaseAuditedEntity
     {
+
         public string Type { get; set; }
         public string Action { get; set; }
         public string Reference { get; set; }

@@ -10,7 +10,8 @@
         - "8084:8080"
         - "8085:8081"
       depends_on:
-        - mysql
+        mysql:
+          condition: service_healthy  # Chờ MySQL sẵn sàng trước khi chạy WebAPI
       environment:
         - ASPNETCORE_ENVIRONMENT=Development
 #        - DOTNET_USER_SECRETS=/app/secrets
@@ -18,7 +19,7 @@
 #        - ./secrets:/app/secrets
       networks:
         - productnetwork
-#      restart: on-failure
+      restart: on-failure
       env_file:
         - ../../src/TalkVN.WebAPI/.env
   
@@ -33,6 +34,11 @@
         - mysqlvolumn:/var/lib/mysql
       networks:
         - productnetwork
+      healthcheck:
+        test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+        interval: 10s
+        timeout: 5s
+        retries: 5
   
   networks:
     productnetwork:

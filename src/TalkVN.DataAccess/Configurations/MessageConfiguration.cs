@@ -18,7 +18,7 @@ namespace TalkVN.DataAccess.Configurations
             // Configure relationship with Sender
             modelBuilder
                 .HasOne(m => m.Sender)
-                .WithMany()
+                .WithMany(s => s.Messages)
                 .HasForeignKey(m => m.SenderId);
         }
     }

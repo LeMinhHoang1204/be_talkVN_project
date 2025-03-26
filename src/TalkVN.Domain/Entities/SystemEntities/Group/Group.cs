@@ -1,5 +1,4 @@
-﻿
-using TalkVN.Domain.Entities.SystemEntities.Relationships;
+﻿using TalkVN.Domain.Entities.SystemEntities.Relationships;
 
 namespace TalkVN.Domain.Entities.SystemEntities.Group
 {
@@ -14,6 +13,7 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
         public string Avatar { get; set; }
 
         public string CreatorId { get; set; }
+
         public UserApplication Creator { get; set; } // Navigation property
 
         public IEnumerable<Conversation> Conversations { get; set; } //1 group co nhieu conversation
