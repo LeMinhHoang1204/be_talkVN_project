@@ -10,6 +10,8 @@ using TalkVN.WebAPI;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://0.0.0.0:8080", "http://0.0.0.0:8081");
@@ -33,13 +35,14 @@ builder.Services
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services
-    .AddDataAccessService(builder.Configuration)
-    .AddApplicationServices();
-builder
-    .AddInfrastructure()
-    .AddWebAPI()
-    ;
+builder.Services.AddDataAccessService(builder.Configuration).AddApplicationServices();
+builder.AddInfrastructure().AddWebAPI();
+
+// Configure the DbContext with the connection string
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 39))));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,47 +1,49 @@
-﻿  version: "3.4"
+﻿version: "3.4"
+
+services:
+  talkvn.webapi:
+    image: ${DOCKER_REGISTRY-}talkvnwebapi
+    build:
+      context: ../../
+      dockerfile: src/TalkVN.WebAPI/Dockerfile
+    ports:
+      - "8084:8080"
+      - "8085:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy  # Chờ MySQL sẵn sàng trước khi chạy WebAPI
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=127.0.0.1;Port=3306;Database=talkvndb;User=root;Password=Password12345!;
+      #- DOTNET_USER_SECRETS=/app/secrets
+    #      volumes:
+    #        - ./secrets:/app/secrets
+    
+    networks:
+      - productnetwork
+    restart: on-failure
+    env_file:
+      - ../../src/TalkVN.WebAPI/.env
   
-  services:
-    talkvn.webapi:
-      image: ${DOCKER_REGISTRY-}talkvnwebapi
-      build:
-        context: ../../
-        dockerfile: src/TalkVN.WebAPI/Dockerfile
-      ports:
-        - "8084:8080"
-        - "8085:8081"
-      depends_on:
-        mysql:
-          condition: service_healthy  # Chờ MySQL sẵn sàng trước khi chạy WebAPI
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-#        - DOTNET_USER_SECRETS=/app/secrets
-#      volumes:
-#        - ./secrets:/app/secrets
-      networks:
-        - productnetwork
-      restart: on-failure
-      env_file:
-        - ../../src/TalkVN.WebAPI/.env
-  
-    mysql:
-      image: mysql:8.0.39
-      environment:
-        MYSQL_ROOT_PASSWORD: "Password12345!"
-        MYSQL_DATABASE: talkvndb
-      ports:
-        - "3306:3306"
-      volumes:
-        - mysqlvolumn:/var/lib/mysql
-      networks:
-        - productnetwork
-      healthcheck:
-        test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-  
-  networks:
-    productnetwork:
-  
-  volumes:
-    mysqlvolumn:
+  mysql:
+    image: mysql:8.0.39
+    environment:
+      MYSQL_ROOT_PASSWORD: "Password12345!"
+      MYSQL_DATABASE: talkvndb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqlvolumn:/var/lib/mysql
+    networks:
+      - productnetwork
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  productnetwork:
+
+volumes:
+  mysqlvolumn:

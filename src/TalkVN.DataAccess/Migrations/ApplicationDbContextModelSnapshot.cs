@@ -88,6 +88,9 @@ namespace TalkVN.DataAccess.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsSeen")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("MessageText")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -105,6 +108,14 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -719,6 +730,106 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("UserNotifications");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permission");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.RolePermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RolePermission");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.MeetingSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatorId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("MeetingSchedule");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserGroupRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -997,7 +1108,8 @@ namespace TalkVN.DataAccess.Migrations
                 {
                     b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
                         .WithMany("Conversations")
-                        .HasForeignKey("GroupId");
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Message", "LastMessage")
                         .WithMany()
@@ -1018,7 +1130,7 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired();
 
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "Sender")
-                        .WithMany()
+                        .WithMany("Messages")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1088,7 +1200,7 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired();
 
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "User")
-                        .WithMany()
+                        .WithMany("ConversationDetails")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1279,6 +1391,44 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("ReceiverUser");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.RolePermission", b =>
+                {
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Identity.ApplicationRole", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.MeetingSchedule", b =>
+                {
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserGroupRole", b =>
                 {
                     b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
@@ -1381,6 +1531,23 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("Conversations");
 
                     b.Navigation("UserGroupRoles");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Identity.ApplicationRole", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Identity.UserApplication", b =>
+                {
+                    b.Navigation("ConversationDetails");
+
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }
