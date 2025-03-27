@@ -19,7 +19,7 @@ namespace TalkVN.Infrastructure.EntityFrameworkCore
             {
                 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 var connectionString = environment == "Development"
-                    ? configuration.GetSection("Database:ConnectionStrings").GetValue<string>("LocalConnection")
+                    ? configuration.GetSection("Database:ConnectionStrings").GetValue<string>("DefaultConnection")
                     : configuration.GetSection("Database:ConnectionStrings").GetValue<string>("AWSConnection");
 
                 options

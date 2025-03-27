@@ -9,4 +9,7 @@ public class Message : BaseAuditedEntity
     public Conversation Conversation { get; set; }
     // Navigation property
     public UserApplication Sender { get; set; }
+
+    public string title {get ; set;}
+    public string content {get ; set;}
 }

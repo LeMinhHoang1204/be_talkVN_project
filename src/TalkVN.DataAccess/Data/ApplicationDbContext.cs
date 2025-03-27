@@ -37,7 +37,7 @@ namespace TalkVN.DataAccess.Data
         public DbSet<CommentNotifications> CommentNotifications { get; set; }
         public DbSet<UserNotifications> UserNotifications { get; set; }
 
-        public  DbSet<Group> Groups { get; set; }
+        public DbSet<Group> Groups { get; set; }
         public DbSet<UserGroupRole> UserGroupRoles { get; set; }
 
         public DbSet<MeetingSchedule> MeetingSchedules { get; set; }
