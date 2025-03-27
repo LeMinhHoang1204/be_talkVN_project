@@ -9,17 +9,17 @@ namespace TalkVN.Application.Mapping
     {
         public NotificationProfile()
         {
-            CreateMap<Notification, NotificationDto>().ReverseMap();
-            CreateMap<CommentNotification, NotificationDto>()
+            CreateMap<Notifications, NotificationDto>().ReverseMap();
+            CreateMap<CommentNotifications, NotificationDto>()
                 .ForMember(dest => dest.Post, opt => opt.MapFrom(p => p.Comment.Post))
                 .ForPath(dest => dest.Post.Comments, opt => opt.Ignore());
 
 
-            CreateMap<PostNotification, NotificationDto>();
-            CreateMap<NotificationDto, CommentNotification>();
-            CreateMap<CreateCommentNotificationDto, CommentNotification>().ReverseMap();
-            CreateMap<CreatePostNotificationDto, PostNotification>().ReverseMap();
-            CreateMap<CreateUserNotificationDto, UserNotification>().ReverseMap();
+            CreateMap<PostNotifications, NotificationDto>();
+            CreateMap<NotificationDto, CommentNotifications>();
+            CreateMap<CreateCommentNotificationDto, CommentNotifications>().ReverseMap();
+            CreateMap<CreatePostNotificationDto, PostNotifications>().ReverseMap();
+            CreateMap<CreateUserNotificationDto, UserNotifications>().ReverseMap();
         }
     }
 }

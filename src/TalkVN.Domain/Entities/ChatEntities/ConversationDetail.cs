@@ -4,7 +4,10 @@ namespace TalkVN.Domain.Entities.ChatEntities
     {
         public Guid ConversationId { get; set; }
         public string UserId { get; set; }
+
+        public GroupStatus Status { get; set; }
         public Conversation Conversation { get; set; }
         public UserApplication User { get; set; }
     }
 }
+

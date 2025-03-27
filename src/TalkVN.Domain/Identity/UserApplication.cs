@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
 using TalkVN.Domain.Entities.ChatEntities;
+using TalkVN.Domain.Entities.SystemEntities.Group;
 
 namespace TalkVN.Domain.Identity
 {
@@ -18,5 +19,7 @@ namespace TalkVN.Domain.Identity
 
         public IEnumerable<Message> Messages { get; set; } // Navigation property
         public IEnumerable<ConversationDetail> ConversationDetails { get; set; } // Navigation property
+
+        public IEnumerable<Group> Groups { get; set; } // Navigation property
     }
 }

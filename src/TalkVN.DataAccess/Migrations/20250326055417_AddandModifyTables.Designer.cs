@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TalkVN.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250326055417_AddandModifyTables")]
+    partial class AddandModifyTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -562,7 +565,7 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("Groups");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.CommentNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.CommentNotification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -589,6 +592,10 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
+                    b.Property<string>("ReceiverUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -609,101 +616,12 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasIndex("LastInteractorUserId");
 
+                    b.HasIndex("ReceiverUserId");
+
                     b.ToTable("CommentNotifications");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.GroupNotifications", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("LastInteractorUserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("LastInteractorUserId");
-
-                    b.ToTable("GroupNotifications");
-                });
-
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.NotificationReceivers", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("GroupNotificationId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ReceiverId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupNotificationId");
-
-                    b.HasIndex("ReceiverId");
-
-                    b.ToTable("NotificationReceivers");
-                });
-
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.PostNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.PostNotification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -730,6 +648,10 @@ namespace TalkVN.DataAccess.Migrations
                     b.Property<Guid>("PostId")
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("ReceiverUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -750,10 +672,12 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasIndex("PostId");
 
+                    b.HasIndex("ReceiverUserId");
+
                     b.ToTable("PostNotifications");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.UserNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.UserNotification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1392,7 +1316,7 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.CommentNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.CommentNotification", b =>
                 {
                     b.HasOne("TalkVN.Domain.Entities.PostEntities.Comment", "Comment")
                         .WithMany()
@@ -1406,50 +1330,20 @@ namespace TalkVN.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "ReceiverUser")
+                        .WithMany()
+                        .HasForeignKey("ReceiverUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Comment");
 
                     b.Navigation("LastInteractorUser");
+
+                    b.Navigation("ReceiverUser");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.GroupNotifications", b =>
-                {
-                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
-                        .WithMany("GroupNotifications")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "LastInteractorUser")
-                        .WithMany()
-                        .HasForeignKey("LastInteractorUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("LastInteractorUser");
-                });
-
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.NotificationReceivers", b =>
-                {
-                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Notification.GroupNotifications", "GroupNotifications")
-                        .WithMany("NotificationReceivers")
-                        .HasForeignKey("GroupNotificationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GroupNotifications");
-
-                    b.Navigation("Receiver");
-                });
-
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.PostNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.PostNotification", b =>
                 {
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "LastInteractorUser")
                         .WithMany()
@@ -1463,12 +1357,20 @@ namespace TalkVN.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "ReceiverUser")
+                        .WithMany()
+                        .HasForeignKey("ReceiverUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("LastInteractorUser");
 
                     b.Navigation("Post");
+
+                    b.Navigation("ReceiverUser");
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.UserNotifications", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.UserNotification", b =>
                 {
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "LastInteractorUser")
                         .WithMany()
@@ -1626,16 +1528,9 @@ namespace TalkVN.DataAccess.Migrations
                 {
                     b.Navigation("Conversations");
 
-                    b.Navigation("GroupNotifications");
-
                     b.Navigation("MeetingSchedules");
 
                     b.Navigation("UserGroupRoles");
-                });
-
-            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.GroupNotifications", b =>
-                {
-                    b.Navigation("NotificationReceivers");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", b =>

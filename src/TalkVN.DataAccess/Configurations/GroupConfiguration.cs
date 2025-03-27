@@ -15,7 +15,7 @@ namespace TalkVN.DataAccess.Configurations
             // Configure relationship with User
             modelBuilder
                 .HasOne(g => g.Creator)
-                .WithMany()
+                .WithMany(u => u.Groups)
                 .HasForeignKey(g => g.CreatorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -31,6 +31,13 @@ namespace TalkVN.DataAccess.Configurations
                 .HasMany(g => g.UserGroupRoles)
                 .WithOne(ugr => ugr.Group)
                 .HasForeignKey(ugr => ugr.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //configure relationship with GroupNotification
+            modelBuilder
+                .HasMany(g => g.GroupNotifications)
+                .WithOne(gn => gn.Group)
+                .HasForeignKey(gn => gn.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

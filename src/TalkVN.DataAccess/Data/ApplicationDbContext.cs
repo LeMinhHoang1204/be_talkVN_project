@@ -12,6 +12,7 @@ using TalkVN.Domain.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 using TalkVN.Domain.Entities.SystemEntities.Group;
+using TalkVN.Domain.Entities.SystemEntities.Permissions;
 using TalkVN.Domain.Entities.SystemEntities.Relationships;
 
 namespace TalkVN.DataAccess.Data
@@ -32,12 +33,23 @@ namespace TalkVN.DataAccess.Data
         public DbSet<ReactionPost> ReactionPosts { get; set; }
         public DbSet<ReactionComment> ReactionComments { get; set; }
         public DbSet<UserInteraction> UserInteractions { get; set; }
-        public DbSet<PostNotification> PostNotifications { get; set; }
-        public DbSet<CommentNotification> CommentNotifications { get; set; }
-        public DbSet<UserNotification> UserNotifications { get; set; }
+        public DbSet<PostNotifications> PostNotifications { get; set; }
+        public DbSet<CommentNotifications> CommentNotifications { get; set; }
+        public DbSet<UserNotifications> UserNotifications { get; set; }
 
         public  DbSet<Group> Groups { get; set; }
         public DbSet<UserGroupRole> UserGroupRoles { get; set; }
+
+        public DbSet<MeetingSchedule> MeetingSchedules { get; set; }
+
+        public DbSet<Permission> Permissions { get; set; }
+
+        public DbSet<RolePermission> RolePermissions { get; set; }
+
+        public DbSet<GroupNotifications> GroupNotifications { get; set; }
+
+        public DbSet<NotificationReceivers> NotificationReceivers { get; set; }
+
 
         public DbSet<Profile> Profiles { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)

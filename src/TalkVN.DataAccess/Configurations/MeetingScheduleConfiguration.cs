@@ -18,6 +18,13 @@ public class MeetingScheduleConfiguration : IEntityTypeConfiguration<MeetingSche
             .HasForeignKey(ms => ms.CreatorId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        //Congirue relationship with Group
+        modelBuilder
+            .HasOne(ms => ms.Group)
+            .WithMany(g => g.MeetingSchedules)
+            .HasForeignKey(ms => ms.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
     }
 }

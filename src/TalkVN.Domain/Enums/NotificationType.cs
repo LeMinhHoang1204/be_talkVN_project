@@ -4,6 +4,7 @@ namespace TalkVN.Domain.Enums
     {
         Post,
         Comment,
+        Group,
         User
     }
 }
