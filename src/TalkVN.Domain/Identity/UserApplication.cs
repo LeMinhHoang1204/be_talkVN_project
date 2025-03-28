@@ -18,7 +18,7 @@ namespace TalkVN.Domain.Identity
         public UserStatus UserStatus { get; set; }
 
         public IEnumerable<Message> Messages { get; set; } // Navigation property
-        public IEnumerable<ConversationDetail> ConversationDetails { get; set; } // Navigation property
+        public IEnumerable<TextChatParticipant> TextChatParticipants { get; set; } // Navigation property
 
         public IEnumerable<Group> Groups { get; set; } // Navigation property
     }

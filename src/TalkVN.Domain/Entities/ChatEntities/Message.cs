@@ -6,7 +6,7 @@ public class Message : BaseAuditedEntity
     public string Status { get; set; }
 
     public bool IsSeen { get; set; }
-    public Conversation Conversation { get; set; }
+    public TextChat TextChat { get; set; }
     // Navigation property
     public UserApplication Sender { get; set; }
 

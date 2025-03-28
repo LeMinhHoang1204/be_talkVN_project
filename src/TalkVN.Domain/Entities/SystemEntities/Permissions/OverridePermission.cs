@@ -7,7 +7,6 @@ public abstract class OverridePermission : BaseAuditedEntity
     public Guid PermissionId { get; set; }
 
     public bool IsAllowed { get; set; }
-
     public string Type { get; set; }
 
     public Permission Permission { get; set; }

@@ -1,6 +1,6 @@
 namespace TalkVN.Domain.Enums
 {
-    public enum ConversationType
+    public enum TextChatType
     {
         Person,
         Group

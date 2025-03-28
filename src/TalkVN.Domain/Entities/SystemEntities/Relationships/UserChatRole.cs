@@ -12,8 +12,9 @@ public class UserChatRole : BaseEntity
 
     public string RoleId { get; set; }
 
-    public Conversation Conversation { get; set; }
+    public TextChat TextChat { get; set; }
     public UserApplication User { get; set; }
     public ApplicationRole Role { get; set; }
     public VoiceChat VoiceChat { get; set; }
+
 }

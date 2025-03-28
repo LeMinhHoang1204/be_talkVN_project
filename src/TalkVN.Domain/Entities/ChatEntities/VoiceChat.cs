@@ -1,4 +1,7 @@
-﻿namespace TalkVN.Domain.Entities.ChatEntities;
+﻿using TalkVN.Domain.Entities.SystemEntities.Permissions;
+using TalkVN.Domain.Entities.SystemEntities.Relationships;
+
+namespace TalkVN.Domain.Entities.ChatEntities;
 
 public class VoiceChat : BaseAuditedEntity
 {
@@ -12,5 +15,14 @@ public class VoiceChat : BaseAuditedEntity
 
     public int MaxQuantity { get; set; }
 
+    public bool CanShareScreen { get; set; }
+
+    public bool CanRecord { get; set; }
+
+    public IEnumerable<VoiceChatParticipant> VoiceChatParticipants { get; set; }
+
+    public IEnumerable<UserChatRole> UserChatRoles { get; set; }
+
+    public IEnumerable<VoiceChatPermission> VoiceChatPermissions { get; set; } // Navigation property
 
 }

@@ -4,7 +4,7 @@ public class TextChatPermission : OverridePermission
 {
     public Guid TextChatId { get; set; }
 
-    public Conversation TextChat { get; set; }
+    public TextChat TextChat { get; set; }
 
     public TextChatPermission()
     {
