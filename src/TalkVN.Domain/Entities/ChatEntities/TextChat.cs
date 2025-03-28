@@ -1,7 +1,7 @@
 ﻿using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Entities.SystemEntities.Group;
 
-public class Conversation : BaseAuditedEntity
+public class TextChat : BaseAuditedEntity
 {
     public Guid? LastMessageId { get; set; }
     //public string userId1 { get; set; }

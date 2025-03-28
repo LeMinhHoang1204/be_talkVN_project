@@ -22,8 +22,8 @@ namespace TalkVN.DataAccess.Data
         public DbSet<UserApplication> UserApplications { get; set; }
         public DbSet<UserFollower> UserFollowers { get; set; }
         public DbSet<UserFollowerRequest> UserFollowerRequests { get; set; }
-        public DbSet<Conversation> Conversations { get; set; }
-        public DbSet<ConversationDetail> ConversationDetails { get; set; }
+        public DbSet<TextChat> TextChats { get; set; }
+        public DbSet<TextChatParticipant> TextChatParticipants { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Post> Posts { get; set; }
@@ -35,23 +35,38 @@ namespace TalkVN.DataAccess.Data
         public DbSet<UserInteraction> UserInteractions { get; set; }
         public DbSet<PostNotifications> PostNotifications { get; set; }
         public DbSet<CommentNotifications> CommentNotifications { get; set; }
+        public DbSet<Profile> Profiles { get; set; }
         public DbSet<UserNotifications> UserNotifications { get; set; }
 
         public DbSet<Group> Groups { get; set; }
+
         public DbSet<UserGroupRole> UserGroupRoles { get; set; }
+
+        public DbSet<UserChatRole> UserChatRoles { get; set; }
 
         public DbSet<MeetingSchedule> MeetingSchedules { get; set; }
 
         public DbSet<Permission> Permissions { get; set; }
 
+        public DbSet<ApplicationRole> ApplicationRoles { get; set; }
+
         public DbSet<RolePermission> RolePermissions { get; set; }
+
+        public DbSet<TextChatPermission> TextChatPermissions { get; set; }
+
+        public DbSet<VoiceChatPermission> VoiceChatPermissions { get; set; }
 
         public DbSet<GroupNotifications> GroupNotifications { get; set; }
 
         public DbSet<NotificationReceivers> NotificationReceivers { get; set; }
 
+        //public DbSet<OverridePermission> OverridePermissions { get; set; }
 
-        public DbSet<Profile> Profiles { get; set; }
+        public DbSet<VoiceChat> VoiceChats { get; set; }
+
+        public DbSet<VoiceChatParticipant> VoiceChatParticipants { get; set; }
+
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 

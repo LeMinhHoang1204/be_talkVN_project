@@ -28,7 +28,7 @@ namespace TalkVN.DataAccess.Configurations
             // Configure relationship with Role
             modelBuilder
                 .HasOne(ugr => ugr.Role)
-                .WithMany()
+                .WithMany(r => r.UserGroupRoles)
                 .HasForeignKey(ugr => ugr.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
 

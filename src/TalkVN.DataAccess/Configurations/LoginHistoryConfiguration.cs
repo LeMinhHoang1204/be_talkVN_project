@@ -8,7 +8,7 @@ namespace TalkVN.DataAccess.Configurations
     {
         public void Configure(EntityTypeBuilder<LoginHistory> modelBuilder)
         {
-            // Conversation Detail
+            // TextChat Detail
             modelBuilder
             .HasKey(c => c.Id);
         }
