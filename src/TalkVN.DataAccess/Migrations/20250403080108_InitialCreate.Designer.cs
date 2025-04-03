@@ -12,8 +12,8 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250327070537_FixMissingTables")]
-    partial class FixMissingTables
+    [Migration("20250403080108_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,53 +24,6 @@ namespace TalkVN.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("Conversation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("ConversationType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid?>("GroupId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsSeen")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<Guid?>("LastMessageId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("NumOfUser")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("LastMessageId");
-
-                    b.ToTable("Conversations");
-                });
 
             modelBuilder.Entity("Message", b =>
                 {
@@ -235,7 +188,7 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.ConversationDetail", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.TextChatParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -260,7 +213,57 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ConversationDetails");
+                    b.ToTable("TextChatParticipants");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.VoiceChat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("CanRecord")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("CanShareScreen")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("MaxQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VoiceChats");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.LoginHistory", b =>
@@ -565,6 +568,10 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -871,6 +878,106 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("RolePermissions");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.TextChatPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsAllowed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("TextChatId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("TextChatId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TextChatPermissions");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.VoiceChatPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsAllowed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<Guid>("VoiceChatId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VoiceChatId");
+
+                    b.ToTable("VoiceChatPermissions");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.MeetingSchedule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -915,6 +1022,42 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("MeetingSchedules");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserChatRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<Guid>("VoiceChatId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VoiceChatId");
+
+                    b.ToTable("UserChatRoles");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserGroupRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -952,6 +1095,33 @@ namespace TalkVN.DataAccess.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserGroupRoles");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.VoiceChatParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("VoiceChatId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("VoiceChatId");
+
+                    b.ToTable("VoiceChatParticipants");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.UserInteraction", b =>
@@ -1189,26 +1359,56 @@ namespace TalkVN.DataAccess.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Conversation", b =>
+            modelBuilder.Entity("TextChat", b =>
                 {
-                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
-                        .WithMany("Conversations")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
 
-                    b.HasOne("Message", "LastMessage")
-                        .WithMany()
-                        .HasForeignKey("LastMessageId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
-                    b.Navigation("Group");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
 
-                    b.Navigation("LastMessage");
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsSeen")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid?>("LastMessageId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("NumOfUser")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TextChatType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("LastMessageId");
+
+                    b.ToTable("TextChats");
                 });
 
             modelBuilder.Entity("Message", b =>
                 {
-                    b.HasOne("Conversation", "Conversation")
+                    b.HasOne("TextChat", "TextChat")
                         .WithMany("Messages")
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1220,9 +1420,9 @@ namespace TalkVN.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Conversation");
-
                     b.Navigation("Sender");
+
+                    b.Navigation("TextChat");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1276,21 +1476,21 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.ConversationDetail", b =>
+            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.TextChatParticipant", b =>
                 {
-                    b.HasOne("Conversation", "Conversation")
-                        .WithMany("ConversationDetails")
+                    b.HasOne("TextChat", "TextChat")
+                        .WithMany("TextChatParticipants")
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "User")
-                        .WithMany("ConversationDetails")
+                        .WithMany("TextChatParticipants")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Conversation");
+                    b.Navigation("TextChat");
 
                     b.Navigation("User");
                 });
@@ -1517,6 +1717,60 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.TextChatPermission", b =>
+                {
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TextChat", "TextChat")
+                        .WithMany("TextChatPermissions")
+                        .HasForeignKey("TextChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("TextChat");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Permissions.VoiceChatPermission", b =>
+                {
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Permissions.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Entities.ChatEntities.VoiceChat", "VoiceChat")
+                        .WithMany("VoiceChatPermissions")
+                        .HasForeignKey("VoiceChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("User");
+
+                    b.Navigation("VoiceChat");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.MeetingSchedule", b =>
                 {
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "Creator")
@@ -1536,6 +1790,41 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserChatRole", b =>
+                {
+                    b.HasOne("TextChat", "TextChat")
+                        .WithMany("UserChatRoles")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Identity.ApplicationRole", "Role")
+                        .WithMany("UserChatRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Identity.UserApplication", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Entities.ChatEntities.VoiceChat", "VoiceChat")
+                        .WithMany("UserChatRoles")
+                        .HasForeignKey("VoiceChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("TextChat");
+
+                    b.Navigation("User");
+
+                    b.Navigation("VoiceChat");
+                });
+
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserGroupRole", b =>
                 {
                     b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
@@ -1545,7 +1834,7 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired();
 
                     b.HasOne("TalkVN.Domain.Identity.ApplicationRole", "Role")
-                        .WithMany()
+                        .WithMany("UserGroupRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1561,6 +1850,25 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.VoiceChatParticipant", b =>
+                {
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
+                        .WithMany("VoiceChatParticipants")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalkVN.Domain.Entities.ChatEntities.VoiceChat", "VoiceChat")
+                        .WithMany("VoiceChatParticipants")
+                        .HasForeignKey("VoiceChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("VoiceChat");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.UserInteraction", b =>
@@ -1612,11 +1920,30 @@ namespace TalkVN.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Conversation", b =>
+            modelBuilder.Entity("TextChat", b =>
                 {
-                    b.Navigation("ConversationDetails");
+                    b.HasOne("TalkVN.Domain.Entities.SystemEntities.Group.Group", "Group")
+                        .WithMany("TextChats")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Messages");
+                    b.HasOne("Message", "LastMessage")
+                        .WithMany()
+                        .HasForeignKey("LastMessageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Group");
+
+                    b.Navigation("LastMessage");
+                });
+
+            modelBuilder.Entity("TalkVN.Domain.Entities.ChatEntities.VoiceChat", b =>
+                {
+                    b.Navigation("UserChatRoles");
+
+                    b.Navigation("VoiceChatParticipants");
+
+                    b.Navigation("VoiceChatPermissions");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.PostEntities.Comment", b =>
@@ -1635,13 +1962,15 @@ namespace TalkVN.DataAccess.Migrations
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Group.Group", b =>
                 {
-                    b.Navigation("Conversations");
-
                     b.Navigation("GroupNotifications");
 
                     b.Navigation("MeetingSchedules");
 
+                    b.Navigation("TextChats");
+
                     b.Navigation("UserGroupRoles");
+
+                    b.Navigation("VoiceChatParticipants");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Notification.GroupNotifications", b =>
@@ -1657,15 +1986,30 @@ namespace TalkVN.DataAccess.Migrations
             modelBuilder.Entity("TalkVN.Domain.Identity.ApplicationRole", b =>
                 {
                     b.Navigation("RolePermissions");
+
+                    b.Navigation("UserChatRoles");
+
+                    b.Navigation("UserGroupRoles");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Identity.UserApplication", b =>
                 {
-                    b.Navigation("ConversationDetails");
-
                     b.Navigation("Groups");
 
                     b.Navigation("Messages");
+
+                    b.Navigation("TextChatParticipants");
+                });
+
+            modelBuilder.Entity("TextChat", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("TextChatParticipants");
+
+                    b.Navigation("TextChatPermissions");
+
+                    b.Navigation("UserChatRoles");
                 });
 #pragma warning restore 612, 618
         }
