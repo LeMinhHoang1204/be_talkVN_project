@@ -20,14 +20,14 @@ namespace TalkVN.DataAccess.Configurations
             modelBuilder
                 .HasMany(c => c.Messages)
                 .WithOne(m => m.TextChat)
-                .HasForeignKey(m => m.ConversationId)
+                .HasForeignKey(m => m.TextChatId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationship with TextChatParticipants
             modelBuilder
                 .HasMany(c => c.TextChatParticipants)
                 .WithOne(cd => cd.TextChat)
-                .HasForeignKey(cd => cd.ConversationId)
+                .HasForeignKey(cd => cd.TextChatId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationship with Group

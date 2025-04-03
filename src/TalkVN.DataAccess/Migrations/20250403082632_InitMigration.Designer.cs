@@ -12,8 +12,8 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250403080108_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250403082632_InitMigration")]
+    partial class InitMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,9 +29,6 @@ namespace TalkVN.DataAccess.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("ConversationId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("CreatedBy")
@@ -59,6 +56,9 @@ namespace TalkVN.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<Guid>("TextChatId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("longtext");
 
@@ -75,9 +75,9 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
-
                     b.HasIndex("SenderId");
+
+                    b.HasIndex("TextChatId");
 
                     b.ToTable("Messages");
                 });
@@ -194,14 +194,14 @@ namespace TalkVN.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("char(36)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("TextChatId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -209,7 +209,7 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
+                    b.HasIndex("TextChatId");
 
                     b.HasIndex("UserId");
 
@@ -1028,15 +1028,15 @@ namespace TalkVN.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("char(36)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
+
+                    b.Property<Guid>("TextChatId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -1047,9 +1047,9 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
-
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("TextChatId");
 
                     b.HasIndex("UserId");
 
@@ -1408,15 +1408,15 @@ namespace TalkVN.DataAccess.Migrations
 
             modelBuilder.Entity("Message", b =>
                 {
-                    b.HasOne("TextChat", "TextChat")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("TalkVN.Domain.Identity.UserApplication", "Sender")
                         .WithMany("Messages")
                         .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TextChat", "TextChat")
+                        .WithMany("Messages")
+                        .HasForeignKey("TextChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1480,7 +1480,7 @@ namespace TalkVN.DataAccess.Migrations
                 {
                     b.HasOne("TextChat", "TextChat")
                         .WithMany("TextChatParticipants")
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("TextChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1792,15 +1792,15 @@ namespace TalkVN.DataAccess.Migrations
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserChatRole", b =>
                 {
-                    b.HasOne("TextChat", "TextChat")
-                        .WithMany("UserChatRoles")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("TalkVN.Domain.Identity.ApplicationRole", "Role")
                         .WithMany("UserChatRoles")
                         .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TextChat", "TextChat")
+                        .WithMany("UserChatRoles")
+                        .HasForeignKey("TextChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

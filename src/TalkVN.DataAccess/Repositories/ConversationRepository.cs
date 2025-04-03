@@ -13,7 +13,7 @@ namespace TalkVN.DataAccess.Repositories
         public async Task<List<TextChat>> GetConversationByUserIdAsync(string userId)
         {
             var listConversation = await (from convDetail in Context.TextChatParticipants
-                                          join conv in Context.TextChats on convDetail.ConversationId equals conv.Id
+                                          join conv in Context.TextChats on convDetail.TextChatId equals conv.Id
                                           where convDetail.UserId == userId && conv.IsDeleted == false
                                           select conv)
                                           .Include(
@@ -30,7 +30,7 @@ namespace TalkVN.DataAccess.Repositories
             TextChat? hasConversation = await Context.TextChatParticipants
                 .Where(cd2 => cd2.UserId == userReceiverId && cd2.TextChat.TextChatType == TextChatType.Person.ToString())
                 .SelectMany(cd2 => Context.TextChatParticipants
-                .Where(cd1 => cd1.UserId == userSenderId && cd1.ConversationId == cd2.ConversationId))
+                .Where(cd1 => cd1.UserId == userSenderId && cd1.TextChatId == cd2.TextChatId))
                 .Select(cd1 => cd1.TextChat)
                 .SingleOrDefaultAsync();
             if (hasConversation != null)

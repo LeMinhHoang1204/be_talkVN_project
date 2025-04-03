@@ -15,7 +15,7 @@ namespace TalkVN.DataAccess.Configurations
             builder
                 .HasOne(ucr => ucr.TextChat)
                 .WithMany(tc => tc.UserChatRoles)
-                .HasForeignKey(ucr => ucr.ConversationId);
+                .HasForeignKey(ucr => ucr.TextChatId);
 
             //configure relationships with User
             builder

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TalkVN.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -994,7 +994,7 @@ namespace TalkVN.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ConversationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TextChatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     SenderId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MessageText = table.Column<string>(type: "longtext", nullable: false)
@@ -1068,7 +1068,7 @@ namespace TalkVN.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ConversationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TextChatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     UserId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false),
@@ -1084,8 +1084,8 @@ namespace TalkVN.DataAccess.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TextChatParticipants_TextChats_ConversationId",
-                        column: x => x.ConversationId,
+                        name: "FK_TextChatParticipants_TextChats_TextChatId",
+                        column: x => x.TextChatId,
                         principalTable: "TextChats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -1141,7 +1141,7 @@ namespace TalkVN.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ConversationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TextChatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     UserId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     VoiceChatId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -1165,8 +1165,8 @@ namespace TalkVN.DataAccess.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserChatRoles_TextChats_ConversationId",
-                        column: x => x.ConversationId,
+                        name: "FK_UserChatRoles_TextChats_TextChatId",
+                        column: x => x.TextChatId,
                         principalTable: "TextChats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -1267,14 +1267,14 @@ namespace TalkVN.DataAccess.Migrations
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_ConversationId",
-                table: "Messages",
-                column: "ConversationId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Messages_SenderId",
                 table: "Messages",
                 column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_TextChatId",
+                table: "Messages",
+                column: "TextChatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_NotificationReceivers_GroupNotificationId",
@@ -1338,9 +1338,9 @@ namespace TalkVN.DataAccess.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TextChatParticipants_ConversationId",
+                name: "IX_TextChatParticipants_TextChatId",
                 table: "TextChatParticipants",
-                column: "ConversationId");
+                column: "TextChatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TextChatParticipants_UserId",
@@ -1373,14 +1373,14 @@ namespace TalkVN.DataAccess.Migrations
                 column: "LastMessageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserChatRoles_ConversationId",
-                table: "UserChatRoles",
-                column: "ConversationId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UserChatRoles_RoleId",
                 table: "UserChatRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserChatRoles_TextChatId",
+                table: "UserChatRoles",
+                column: "TextChatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserChatRoles_UserId",
@@ -1463,9 +1463,9 @@ namespace TalkVN.DataAccess.Migrations
                 column: "VoiceChatId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Messages_TextChats_ConversationId",
+                name: "FK_Messages_TextChats_TextChatId",
                 table: "Messages",
-                column: "ConversationId",
+                column: "TextChatId",
                 principalTable: "TextChats",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -1487,7 +1487,7 @@ namespace TalkVN.DataAccess.Migrations
                 table: "TextChats");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Messages_TextChats_ConversationId",
+                name: "FK_Messages_TextChats_TextChatId",
                 table: "Messages");
 
             migrationBuilder.DropTable(
