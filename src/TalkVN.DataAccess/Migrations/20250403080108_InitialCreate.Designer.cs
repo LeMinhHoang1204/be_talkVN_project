@@ -12,7 +12,11 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
+<<<<<<<< HEAD:src/TalkVN.DataAccess/Migrations/20250403080108_InitialCreate.Designer.cs
     [Migration("20250403080108_InitialCreate")]
+========
+    [Migration("20250403075420_InitialCreate")]
+>>>>>>>> d3e8a58 (Add migration: InitialCreate):src/TalkVN.DataAccess/Migrations/20250403075420_InitialCreate.Designer.cs
     partial class InitialCreate
     {
         /// <inheritdoc />
