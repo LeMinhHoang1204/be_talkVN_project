@@ -28,7 +28,7 @@ namespace TalkVN.DataAccess.Repositories
         public async Task<TextChat?> IsConversationExisted(string userSenderId, string userReceiverId)
         {
             TextChat? hasConversation = await Context.TextChatParticipants
-                .Where(cd2 => cd2.UserId == userReceiverId && cd2.TextChat.ConversationType == TextChatType.Person.ToString())
+                .Where(cd2 => cd2.UserId == userReceiverId && cd2.TextChat.TextChatType == TextChatType.Person.ToString())
                 .SelectMany(cd2 => Context.TextChatParticipants
                 .Where(cd1 => cd1.UserId == userSenderId && cd1.ConversationId == cd2.ConversationId))
                 .Select(cd1 => cd1.TextChat)

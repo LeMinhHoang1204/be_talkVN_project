@@ -115,7 +115,7 @@ namespace TalkVN.Application.Services
                 IsDeleted = false,
                 LastMessageId = null,
                 NumOfUser = userIds.Count,
-                ConversationType = userIds.Count == 2 ? TextChatType.Person.ToString() : TextChatType.Group.ToString(),
+                TextChatType = userIds.Count == 2 ? TextChatType.Person.ToString() : TextChatType.Group.ToString(),
             };
             await _conversationRepository.AddAsync(textChat);
             List<TextChatParticipant> TextChatParticipants = new();

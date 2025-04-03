@@ -12,7 +12,7 @@ public class TextChat : BaseAuditedEntity
     public Message? LastMessage { get; set; }
     public bool IsSeen { get; set; }
     public int NumOfUser { get; set; }
-    public string ConversationType { get; set; }
+    public string TextChatType { get; set; }
 
     public Guid? GroupId { get; set; }
 
