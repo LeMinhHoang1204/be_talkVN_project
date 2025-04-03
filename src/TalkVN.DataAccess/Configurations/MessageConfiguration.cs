@@ -13,7 +13,7 @@ namespace TalkVN.DataAccess.Configurations
             modelBuilder
                 .HasOne(m => m.TextChat)
                 .WithMany(c => c.Messages)
-                .HasForeignKey(m => m.ConversationId);
+                .HasForeignKey(m => m.TextChatId);
 
             // Configure relationship with Sender
             modelBuilder
