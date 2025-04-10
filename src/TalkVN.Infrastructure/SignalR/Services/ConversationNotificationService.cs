@@ -14,16 +14,16 @@ namespace TalkVN.Infrastructure.SignalR.Services
         public ConversationNotificationService(IHubContext<ConversationHub, IConversationClient> hubContext) => this._hubContext = hubContext;
         public async Task SendMessage(MessageDto message)
         {
-            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.ConversationId)).NewMessage(message);
+            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.TextChatId)).NewMessage(message);
         }
 
         public async Task UpdateMessage(MessageDto message)
         {
-            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.ConversationId)).UpdateMessage(message);
+            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.TextChatId)).UpdateMessage(message);
         }
         public async Task DeleteMessage(MessageDto message)
         {
-            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.ConversationId)).DeleteMessage(message);
+            await _hubContext.Clients.Group(HubRoom.ConversationHubJoinRoom(message.TextChatId)).DeleteMessage(message);
         }
     }
 }

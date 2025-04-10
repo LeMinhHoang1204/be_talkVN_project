@@ -14,7 +14,7 @@ services:
         condition: service_healthy  # Chờ MySQL sẵn sàng trước khi chạy WebAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=127.0.0.1;Port=3306;Database=talkvndb;User=root;Password=Password12345!;
+#      - ConnectionStrings__DefaultConnection=Server=127.0.0.1;Port=3306;Database=talkvndb;User=root;Password=Password12345!;
       #- DOTNET_USER_SECRETS=/app/secrets
     #      volumes:
     #        - ./secrets:/app/secrets

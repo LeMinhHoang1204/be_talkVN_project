@@ -15,6 +15,7 @@ using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Enums;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace TalkVN.Application.Services
 {
@@ -28,6 +29,8 @@ namespace TalkVN.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IUserNotificationService _userNotificationService;
         private readonly IConversationNotificationService _conversationNotificationService;
+        private readonly ILogger<ConversationService> _logger;
+
         public ConversationService(IConversationRepository conversationRepository
             , IUserRepository userRepository
             , IRepositoryFactory repositoryFactory
@@ -35,6 +38,7 @@ namespace TalkVN.Application.Services
             , IClaimService claimService
             , IConversationNotificationService conversationNotificationService
             , IUserNotificationService userNotificationService
+            , ILogger<ConversationService> logger
             )
         {
             _userRepository = userRepository;
@@ -45,16 +49,19 @@ namespace TalkVN.Application.Services
             _claimService = claimService;
             this._conversationNotificationService = conversationNotificationService;
             _userNotificationService = userNotificationService;
+            _logger = logger;
         }
 
         public async Task<List<ConversationDto>> GetAllConversationsAsync(PaginationFilter paginationFilter)
         {
             var userId = _claimService.GetUserId();
+            _logger.LogInformation("GetAllConversationsAsync started for UserId: {UserId}", userId);
             var paginationResponse = await _conversationRepository
                                     .GetAllAsync(p => p.TextChatParticipants.Any(p => p.UserId == userId)
                                     , p => p.OrderByDescending(c => c.UpdatedOn), paginationFilter.PageIndex, paginationFilter.PageSize
                                     , query => query.Include(c => c.LastMessage)
                                                     .Include(c => c.TextChatParticipants));
+            _logger.LogInformation("paginationResponse: {PaginationResponse}", paginationResponse);
             List<ConversationDto> response = new();
             foreach (TextChat c in paginationResponse.Items)
             {
@@ -83,7 +90,7 @@ namespace TalkVN.Application.Services
             response.Id = conversation.Id;
             response.UserReceiverIds = receiverIds.ToList();
             var responsePagination = await _messageRepository
-                .GetAllAsync(p => p.IsDeleted == false && p.ConversationId == conversationId
+                .GetAllAsync(p => p.IsDeleted == false && p.TextChatId == conversationId
                             , p => p.OrderBy(p => p.CreatedOn)
                             , messagePageIndex, messagePageSize
                             );
@@ -123,7 +130,7 @@ namespace TalkVN.Application.Services
             {
                 TextChatParticipants.Add(new TextChatParticipant()
                 {
-                    ConversationId = textChat.Id,
+                    TextChatId = textChat.Id,
                     UserId = user,
                 });
             }
@@ -140,7 +147,7 @@ namespace TalkVN.Application.Services
             var senderId = _claimService.GetUserId();
             Message message = _mapper.Map<Message>(request);
             message.SenderId = senderId;
-            message.ConversationId = conversationId;
+            message.TextChatId = conversationId;
             message.Status = MessageStatus.NORMAL;
             var conversation = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == conversationId, p => p.Include(p => p.TextChatParticipants));
             if (conversation == null)
@@ -156,11 +163,12 @@ namespace TalkVN.Application.Services
             await _userNotificationService.UpdateConversation(conversationDto, senderId);
             return _mapper.Map<MessageDto>(message);
         }
+
         public async Task<MessageDto> UpdateMessageAsync(MessageDto messageDto)
         {
             var senderId = _claimService.GetUserId();
             Message message = await _messageRepository.GetFirstOrDefaultAsync(p => p.Id == messageDto.Id);
-            var conversation = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == messageDto.ConversationId, p => p.Include(p => p.TextChatParticipants));
+            var conversation = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == messageDto.TextChatId, p => p.Include(p => p.TextChatParticipants));
             message.MessageText = messageDto.MessageText;
             message.Status = MessageStatus.EDITED;
             ConversationDto conversationDto = _mapper.Map<ConversationDto>(conversation);
