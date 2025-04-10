@@ -4,7 +4,7 @@ namespace TalkVN.Domain.Entities.SystemEntities.Relationships;
 
 public class UserChatRole : BaseEntity
 {
-    public Guid ConversationId { get; set; }
+    public Guid TextChatId { get; set; }
 
     public string UserId { get; set; }
 

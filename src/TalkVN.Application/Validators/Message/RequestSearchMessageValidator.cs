@@ -8,7 +8,7 @@ namespace TalkVN.Application.Validators.Message
         public RequestSearchMessageValidator()
         {
             RuleFor(p => p.Text).NotNull().NotEmpty();
-            RuleFor(p => p.ConversationId).NotNull().NotEmpty();
+            RuleFor(p => p.TextChatId).NotNull().NotEmpty();
         }
     }
 }

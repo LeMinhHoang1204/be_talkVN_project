@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://0.0.0.0:8080", "http://0.0.0.0:8081");
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // Add services to the container.
 var env = builder.Environment;
@@ -32,19 +32,39 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new UnixTimestampConverter());
     }); ;
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Learn more about configuring Swagger/CoOpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDataAccessService(builder.Configuration).AddApplicationServices();
 builder.AddInfrastructure().AddWebAPI();
 
-// Configure the DbContext with the connection string
+var connectionString = builder.Environment.IsProduction()
+    ? builder.Configuration.GetConnectionString("AWSConnection")
+    : builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine("Connection String: " + builder.Configuration.GetConnectionString("AWSConnection"));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 39))));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 39))));
+
+// // Configure the DbContext with the connection string
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+//         new MySqlServerVersion(new Version(8, 0, 39))));
+
+// const string corsPolicyName = "AllowVercelFrontend";
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy(name: corsPolicyName, policy =>
+//     {
+//         policy.WithOrigins("https://fetalkvnproject.vercel.app")
+//             .AllowAnyHeader()
+//             .AllowAnyMethod()
+//             .AllowCredentials();
+//     });
+// });
+
 
 var app = builder.Build();
-
+// app.UseCors(corsPolicyName);
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -58,11 +78,11 @@ app.AddInfrastuctureApplication();
 app.UseAuthentication();
 app.UseAuthorization();
 app.AddSignalRHub();
-app.UseCors(corsPolicyBuilder => corsPolicyBuilder
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-    );
+// app.UseCors(corsPolicyBuilder => corsPolicyBuilder
+//         .AllowAnyOrigin()
+//         .AllowAnyMethod()
+//         .AllowAnyHeader()
+//     );
 app.MapControllers();
 
 app.Run();

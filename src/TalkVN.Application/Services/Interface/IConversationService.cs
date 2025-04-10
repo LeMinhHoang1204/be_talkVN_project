@@ -7,15 +7,15 @@ namespace TalkVN.Application.Services.Interface
     public interface IConversationService
     {
         Task<List<ConversationDto>> GetAllConversationsAsync(PaginationFilter query);
-        Task<ConversationDetailDto> GetConversationsByIdAsync(Guid conversationId, int messagePageIndex, int messagePageSize);
+        Task<ConversationDetailDto> GetConversationsByIdAsync(Guid TextChatId, int messagePageIndex, int messagePageSize);
         // post
         Task<ConversationDto> CreateConversationAsync(List<string> userIds);
-        Task<MessageDto> SendMessageAsync(Guid conversationId, RequestSendMessageDto request);
+        Task<MessageDto> SendMessageAsync(Guid TextChatId, RequestSendMessageDto request);
         // Put
         Task<MessageDto> UpdateMessageAsync(MessageDto message);
         Task<ConversationDto> UpdateConversationAsync(ConversationDto conversation);
         // Delete
-        Task<ConversationDto> DeleteConversationAsync(Guid conversationId);
+        Task<ConversationDto> DeleteConversationAsync(Guid TextChatId);
         Task<MessageDto> DeleteMessageAsync(Guid messageId);
     }
 }

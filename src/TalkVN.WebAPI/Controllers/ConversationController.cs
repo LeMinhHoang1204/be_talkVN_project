@@ -32,12 +32,12 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<List<ConversationDto>>.Success(await _conversationService.GetAllConversationsAsync(pagination)));
         }
         [HttpGet]
-        [Route("{conversationId}")]
+        [Route("{TextChatId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDetailDto>), StatusCodes.Status200OK)] // OK với ProductResponse
 
-        public async Task<IActionResult> GetConversationsByIdAsync(Guid conversationId, [FromQuery] int messagePageIndex = 0, [FromQuery] int messagePageSize = 100)
+        public async Task<IActionResult> GetConversationsByIdAsync(Guid TextChatId, [FromQuery] int messagePageIndex = 0, [FromQuery] int messagePageSize = 100)
         {
-            return Ok(ApiResult<ConversationDetailDto>.Success(await _conversationService.GetConversationsByIdAsync(conversationId, messagePageIndex, messagePageSize)));
+            return Ok(ApiResult<ConversationDetailDto>.Success(await _conversationService.GetConversationsByIdAsync(TextChatId, messagePageIndex, messagePageSize)));
         }
         [HttpPost]
         [Route("")]
@@ -47,37 +47,37 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
         }
         [HttpPost]
-        [Route("{conversationId}")]
+        [Route("{TextChatId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> SendMessageAsync(Guid conversationId, [FromBody] RequestSendMessageDto request)
+        public async Task<IActionResult> SendMessageAsync(Guid TextChatId, [FromBody] RequestSendMessageDto request)
         {
-            return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
+            return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(TextChatId, request)));
         }
         [HttpPut]
-        [Route("{conversationId}")]
+        [Route("{TextChatId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> UpdateConversationAsync(Guid conversationId, [FromBody] ConversationDto request)
+        public async Task<IActionResult> UpdateConversationAsync(Guid TextChatId, [FromBody] ConversationDto request)
         {
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.UpdateConversationAsync(request)));
         }
         [HttpPut]
-        [Route("{conversationId}/messages/{messageId}")]
+        [Route("{TextChatId}/messages/{messageId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> UpdateMessageAsync(Guid conversationId, Guid messageId, [FromBody] MessageDto messageDto)
+        public async Task<IActionResult> UpdateMessageAsync(Guid TextChatId, Guid messageId, [FromBody] MessageDto messageDto)
         {
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.UpdateMessageAsync(messageDto)));
         }
         [HttpDelete]
-        [Route("{conversationId}")]
+        [Route("{TextChatId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> DeleteConversationAsync(Guid conversationId)
+        public async Task<IActionResult> DeleteConversationAsync(Guid TextChatId)
         {
-            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.DeleteConversationAsync(conversationId)));
+            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.DeleteConversationAsync(TextChatId)));
         }
         [HttpDelete]
-        [Route("{conversationId}/messages/{messageId}")]
+        [Route("{TextChatId}/messages/{messageId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> DeleteConversationAsync(Guid conversationId, Guid messageId)
+        public async Task<IActionResult> DeleteConversationAsync(Guid TextChatId, Guid messageId)
         {
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.DeleteMessageAsync(messageId)));
         }
