@@ -10,7 +10,10 @@ using TalkVN.WebAPI;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+
+using TalkVN.Domain.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +66,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // });
 
 
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 // app.UseCors(corsPolicyName);
 // Configure the HTTP request pipeline.
@@ -72,6 +77,11 @@ app.UseSwaggerUI();
 // Migrate Database
 using var scope = app.Services.CreateAsyncScope();
 await AutomatedMigration.MigrateAsync(scope.ServiceProvider);
+
+// Gọi seed sau khi migrate
+var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserApplication>>();
+var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+await DbContextSeed.SeedDatabaseAsync(userManager, roleManager);
 
 app.UseHttpsRedirection();
 app.AddInfrastuctureApplication();

@@ -71,8 +71,9 @@ namespace TalkVN.DataAccess.Data
 
                     await userManager.AddToRoleAsync(user, UserRoles.Admin.ToString());
                 }
-
             }
+
+
         }
     }
 }

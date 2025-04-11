@@ -7,6 +7,8 @@ using TalkVN.Application.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using TalkVN.DataAccess.Repositories.Interface;
+
 namespace TalkVN.WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -17,6 +19,7 @@ namespace TalkVN.WebAPI.Controllers
         private readonly ILogger<ConversationController> _logger;
         private readonly IConversationService _conversationService;
         private readonly IClaimService _claimService;
+        private readonly IUserRepository _userRepository;
         public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService)
         {
             _logger = logger;
@@ -32,52 +35,72 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<List<ConversationDto>>.Success(await _conversationService.GetAllConversationsAsync(pagination)));
         }
         [HttpGet]
-        [Route("{TextChatId}")]
+        [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDetailDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-
-        public async Task<IActionResult> GetConversationsByIdAsync(Guid TextChatId, [FromQuery] int messagePageIndex = 0, [FromQuery] int messagePageSize = 100)
+        public async Task<IActionResult> GetConversationsByIdAsync(Guid conversationId, [FromQuery] int messagePageIndex = 0, [FromQuery] int messagePageSize = 100)
         {
-            return Ok(ApiResult<ConversationDetailDto>.Success(await _conversationService.GetConversationsByIdAsync(TextChatId, messagePageIndex, messagePageSize)));
+            return Ok(ApiResult<ConversationDetailDto>.Success(await _conversationService.GetConversationsByIdAsync(conversationId, messagePageIndex, messagePageSize)));
         }
+        // create conversation
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> CreateConversationAsync([FromBody] List<string> userIds)
+        public async Task<IActionResult> CreateConversationAsync([FromBody] RequestCreateConversationDto request)
         {
+            // Nếu truyền username → tìm userId
+            List<string> userIds = request.UserIds ?? new();
+
+            // Lấy userId của người tạo từ claim
+            var creatorUserId = _claimService.GetUserId();
+            if (!string.IsNullOrEmpty(creatorUserId))
+            {
+                userIds.Add(creatorUserId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Username))
+            {
+                var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == request.Username);
+                if (user == null)
+                {
+                    return NotFound(ApiResult<string>.Failure(new[] { new ApiResultError(ApiResultErrorCodes.NotFound, "User Not Found") }));
+                }
+                userIds.Add(user.Id);
+            }
+
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
         }
         [HttpPost]
-        [Route("{TextChatId}")]
+        [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> SendMessageAsync(Guid TextChatId, [FromBody] RequestSendMessageDto request)
+        public async Task<IActionResult> SendMessageAsync(Guid conversationId, [FromBody] RequestSendMessageDto request)
         {
-            return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(TextChatId, request)));
+            return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
         }
         [HttpPut]
-        [Route("{TextChatId}")]
+        [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> UpdateConversationAsync(Guid TextChatId, [FromBody] ConversationDto request)
+        public async Task<IActionResult> UpdateConversationAsync(Guid conversationId, [FromBody] ConversationDto request)
         {
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.UpdateConversationAsync(request)));
         }
         [HttpPut]
-        [Route("{TextChatId}/messages/{messageId}")]
+        [Route("{conversationId}/messages/{messageId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> UpdateMessageAsync(Guid TextChatId, Guid messageId, [FromBody] MessageDto messageDto)
+        public async Task<IActionResult> UpdateMessageAsync(Guid conversationId, Guid messageId, [FromBody] MessageDto messageDto)
         {
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.UpdateMessageAsync(messageDto)));
         }
         [HttpDelete]
-        [Route("{TextChatId}")]
+        [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> DeleteConversationAsync(Guid TextChatId)
+        public async Task<IActionResult> DeleteConversationAsync(Guid conversationId)
         {
-            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.DeleteConversationAsync(TextChatId)));
+            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.DeleteConversationAsync(conversationId)));
         }
         [HttpDelete]
-        [Route("{TextChatId}/messages/{messageId}")]
+        [Route("{conversationId}/messages/{messageId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> DeleteConversationAsync(Guid TextChatId, Guid messageId)
+        public async Task<IActionResult> DeleteConversationAsync(Guid conversationId, Guid messageId)
         {
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.DeleteMessageAsync(messageId)));
         }

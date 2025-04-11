@@ -15,6 +15,7 @@ using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Enums;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace TalkVN.Application.Services
 {
@@ -28,6 +29,8 @@ namespace TalkVN.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IUserNotificationService _userNotificationService;
         private readonly IConversationNotificationService _conversationNotificationService;
+        private readonly ILogger<ConversationService> _logger;
+
         public ConversationService(IConversationRepository conversationRepository
             , IUserRepository userRepository
             , IRepositoryFactory repositoryFactory
@@ -35,6 +38,7 @@ namespace TalkVN.Application.Services
             , IClaimService claimService
             , IConversationNotificationService conversationNotificationService
             , IUserNotificationService userNotificationService
+            , ILogger<ConversationService> logger
             )
         {
             _userRepository = userRepository;
@@ -45,16 +49,19 @@ namespace TalkVN.Application.Services
             _claimService = claimService;
             this._conversationNotificationService = conversationNotificationService;
             _userNotificationService = userNotificationService;
+            _logger = logger;
         }
 
         public async Task<List<ConversationDto>> GetAllConversationsAsync(PaginationFilter paginationFilter)
         {
             var userId = _claimService.GetUserId();
+            _logger.LogInformation("GetAllConversationsAsync started for UserId: {UserId}", userId);
             var paginationResponse = await _conversationRepository
                                     .GetAllAsync(p => p.TextChatParticipants.Any(p => p.UserId == userId)
                                     , p => p.OrderByDescending(c => c.UpdatedOn), paginationFilter.PageIndex, paginationFilter.PageSize
                                     , query => query.Include(c => c.LastMessage)
                                                     .Include(c => c.TextChatParticipants));
+            _logger.LogInformation("paginationResponse: {PaginationResponse}", paginationResponse);
             List<ConversationDto> response = new();
             foreach (TextChat c in paginationResponse.Items)
             {
@@ -70,11 +77,11 @@ namespace TalkVN.Application.Services
             }
             return response;
         }
-        public async Task<ConversationDetailDto> GetConversationsByIdAsync(Guid TextChatId, int messagePageIndex, int messagePageSize)
+        public async Task<ConversationDetailDto> GetConversationsByIdAsync(Guid conversationId, int messagePageIndex, int messagePageSize)
         {
             var userId = _claimService.GetUserId();
             var conversation = await _conversationRepository
-                .GetFirstOrDefaultAsync(p => p.Id == TextChatId, query => query
+                .GetFirstOrDefaultAsync(p => p.Id == conversationId, query => query
                 .Include(c => c.TextChatParticipants));
             var receiverIds = conversation.TextChatParticipants.Where(u => u.UserId != userId).Select(p => p.UserId);
             var receiverUsers = await _userRepository.GetAllAsync(p => receiverIds.Contains(p.Id));
@@ -83,7 +90,7 @@ namespace TalkVN.Application.Services
             response.Id = conversation.Id;
             response.UserReceiverIds = receiverIds.ToList();
             var responsePagination = await _messageRepository
-                .GetAllAsync(p => p.IsDeleted == false && p.TextChatId == TextChatId
+                .GetAllAsync(p => p.IsDeleted == false && p.TextChatId == conversationId
                             , p => p.OrderBy(p => p.CreatedOn)
                             , messagePageIndex, messagePageSize
                             );
@@ -135,17 +142,17 @@ namespace TalkVN.Application.Services
             await _userNotificationService.AddConversation(conversationDto, senderId);
             return conversationDto;
         }
-        public async Task<MessageDto> SendMessageAsync(Guid TextChatId, RequestSendMessageDto request)
+        public async Task<MessageDto> SendMessageAsync(Guid conversationId, RequestSendMessageDto request)
         {
             var senderId = _claimService.GetUserId();
             Message message = _mapper.Map<Message>(request);
             message.SenderId = senderId;
-            message.TextChatId = TextChatId;
+            message.TextChatId = conversationId;
             message.Status = MessageStatus.NORMAL;
-            var conversation = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == TextChatId, p => p.Include(p => p.TextChatParticipants));
+            var conversation = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == conversationId, p => p.Include(p => p.TextChatParticipants));
             if (conversation == null)
             {
-                throw new NotFoundException(ValidationTexts.NotFound.Format(typeof(TextChat), TextChatId));
+                throw new NotFoundException(ValidationTexts.NotFound.Format(typeof(TextChat), conversationId));
             }
             await _messageRepository.AddAsync(message);
             conversation.LastMessageId = message.Id;
@@ -184,10 +191,10 @@ namespace TalkVN.Application.Services
             await _userNotificationService.UpdateConversation(conversationDto, senderId);
             return _mapper.Map<ConversationDto>(textChat);
         }
-        public async Task<ConversationDto> DeleteConversationAsync(Guid TextChatId)
+        public async Task<ConversationDto> DeleteConversationAsync(Guid conversationId)
         {
             var senderId = _claimService.GetUserId();
-            TextChat textChat = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == TextChatId, p => p.Include(p => p.TextChatParticipants));
+            TextChat textChat = await _conversationRepository.GetFirstOrDefaultAsync(p => p.Id == conversationId, p => p.Include(p => p.TextChatParticipants));
             textChat.IsDeleted = true;
             ConversationDto conversationDto = _mapper.Map<ConversationDto>(textChat);
             conversationDto.UserReceiverIds = textChat.TextChatParticipants.Where(p => p.UserId != senderId).Select(p => p.UserId).ToList();

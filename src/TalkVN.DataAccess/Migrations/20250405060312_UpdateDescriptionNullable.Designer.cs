@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TalkVN.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250405060312_UpdateDescriptionNullable")]
+    partial class UpdateDescriptionNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,6 +64,14 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -227,9 +238,6 @@ namespace TalkVN.DataAccess.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("IsPrivate")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<int>("MaxQuantity")
                         .HasColumnType("int");
 
@@ -240,6 +248,12 @@ namespace TalkVN.DataAccess.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("longtext");
@@ -1369,7 +1383,7 @@ namespace TalkVN.DataAccess.Migrations
                     b.Property<Guid?>("LastMessageId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int?>("NumOfUser")
+                    b.Property<int>("NumOfUser")
                         .HasColumnType("int");
 
                     b.Property<string>("TextChatType")

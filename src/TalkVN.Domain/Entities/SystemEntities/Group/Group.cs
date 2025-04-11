@@ -5,14 +5,14 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
 {
     public class Group : BaseAuditedEntity
     {
-        public string Name { get; set; }
-        public string Password { get; set; }
-        public bool IsPrivate { get; set; }
-        public GroupStatus Status { get; set; }
-        public int MaxQuantity { get; set; }
-        public string Description { get; set; }
-        public string Avatar { get; set; }
-        public string Url { get; set; }
+        public string Name { get; set; } // required
+        public string Password { get; set; } // required if IsPrivate is true
+        public bool IsPrivate { get; set; } // required
+        public GroupStatus Status { get; set; } // default active
+        public int MaxQuantity { get; set; } // default 20
+        public string Description { get; set; } // optional
+        public string Avatar { get; set; } // optional
+        public string Url { get; set; } // optional
 
         public string CreatorId { get; set; }
 

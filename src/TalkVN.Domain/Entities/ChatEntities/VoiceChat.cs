@@ -5,19 +5,20 @@ namespace TalkVN.Domain.Entities.ChatEntities;
 
 public class VoiceChat : BaseAuditedEntity
 {
-    public string Name { get; set; }
+    public string Name { get; set; } // required
 
-    public string Password { get; set; }
+    public string Password { get; set; } // required if IsPrivate is true
 
-    public GroupStatus Status { get; set; }
+    // public GroupStatus Status { get; set; }
 
-    public ChatType Type { get; set; }
+    // public ChatType Type { get; set; }
+    public bool IsPrivate { get; set; } // required - default false
 
-    public int MaxQuantity { get; set; }
+    public int MaxQuantity { get; set; } // default 20
 
-    public bool CanShareScreen { get; set; }
+    public bool CanShareScreen { get; set; } // default true
 
-    public bool CanRecord { get; set; }
+    public bool CanRecord { get; set; } // default true
 
     public IEnumerable<VoiceChatParticipant> VoiceChatParticipants { get; set; }
 
