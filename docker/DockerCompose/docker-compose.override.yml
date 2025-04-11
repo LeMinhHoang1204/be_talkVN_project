@@ -7,12 +7,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - ConnectionStrings__AWSConnection=Server=mysql-talkvn.c7uaqsu8ewts.ap-southeast-1.rds.amazonaws.com;Port=3306;Database=TalkVNDB;User=admin;Password=Password12345!;
-#      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=talkvndb;User=root;Password=Password12345!;
     ports:
       - "8080"
       - "8081"
 #    volumes:
 #      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
 #      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
-
