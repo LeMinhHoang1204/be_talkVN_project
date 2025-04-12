@@ -1,9 +1,9 @@
-namespace TalkVN.Infrastructure.SignalR.Helpers
-{
-    public static class HubEndpoint
+    namespace TalkVN.Infrastructure.SignalR.Helpers
     {
-        public static string ConversationHubEndpoint = "hubs/textChat";
-        public static string UserHubEndpoint = "hubs/user";
+        public static class HubEndpoint
+        {
+            public static string ConversationHubEndpoint = "hubs/textChat";
+            public static string UserHubEndpoint = "hubs/user";
 
+        }
     }
-}

@@ -9,8 +9,8 @@
       - "443:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/talkvn.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=talkvn
+#      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/talkvn.pfx
+#      - ASPNETCORE_Kestrel__Certificates__Default__Password=talkvn
     env_file:
       - ../../src/TalkVN.WebAPI/.env
     networks:
