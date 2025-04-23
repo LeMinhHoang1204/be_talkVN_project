@@ -13,8 +13,8 @@ services:
       mysql:
         condition: service_healthy  # Chờ MySQL sẵn sàng trước khi chạy WebAPI
     environment:
-#      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
+#      - ASPNETCORE_ENVIRONMENT=Production
       #- DOTNET_USER_SECRETS=/app/secrets
     #      volumes:
     #        - ./secrets:/app/secrets

@@ -44,7 +44,7 @@ builder.AddInfrastructure().AddWebAPI();
 var connectionString = builder.Environment.IsProduction()
     ? builder.Configuration.GetConnectionString("AWSConnection")
     : builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine("Connection String: " + builder.Configuration.GetConnectionString("AWSConnection"));
+Console.WriteLine("Connection String: " + connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 39))));
 
@@ -53,23 +53,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
 //         new MySqlServerVersion(new Version(8, 0, 39))));
 
-// const string corsPolicyName = "AllowVercelFrontend";
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy(name: corsPolicyName, policy =>
-//     {
-//         policy.WithOrigins("https://fetalkvnproject.vercel.app")
-//             .AllowAnyHeader()
-//             .AllowAnyMethod()
-//             .AllowCredentials();
-//     });
-// });
+//CORS
+const string corsPolicyName = "AllowVercelFrontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsPolicyName, policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 
 builder.Logging.AddConsole();
 
 var app = builder.Build();
-// app.UseCors(corsPolicyName);
+app.UseCors(corsPolicyName);
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
