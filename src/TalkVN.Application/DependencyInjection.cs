@@ -42,6 +42,7 @@ namespace TalkVN.Application
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IConversationService, ConversationService>();
+            services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IProfileService, ProfileService>();
          //   services.AddScoped<IPostService, PostService>();
             services.AddScoped<INotificationService, NotificationService>();

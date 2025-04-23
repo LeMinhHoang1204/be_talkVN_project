@@ -11,7 +11,7 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
         public GroupStatus Status { get; set; } // default active
         public int MaxQuantity { get; set; } // default 20
         public string Description { get; set; } // optional
-        public string Avatar { get; set; } // optional
+        public string? Avatar { get; set; } // optional
         public string Url { get; set; } // optional
 
         public string CreatorId { get; set; }
