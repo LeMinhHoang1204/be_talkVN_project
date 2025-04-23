@@ -75,6 +75,28 @@ namespace TalkVN.Application.Services
         }
 
 
+        public async Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+            var members = await _userGroupRoleRepository.GetAllAsync(
+                x => x.GroupId == groupId,
+                query => query.Include(x => x.User)
+            );
+            List<UserGroupRoleDto> response = new();
+            foreach (var member in members)
+            {
+                var userGroupRoleDto = _mapper.Map<UserGroupRoleDto>(member);
+                userGroupRoleDto.User = _mapper.Map<UserDto>(member.User);
+                response.Add(userGroupRoleDto);
+            }
+            return response;
+        }
+
+
         public async Task<GroupDto> CreateGroupAsync(RequestCreateGroupDto request)
         {
             var userId = _claimService.GetUserId();

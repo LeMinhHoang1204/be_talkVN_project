@@ -41,6 +41,15 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<List<GroupDto>>.Success(await _groupService.GetAllGroupsAsync(pagination)));
         }
 
+        //get group's members
+        [HttpGet]
+        [Route("{groupId}/members")]
+        [ProducesResponseType(typeof(ApiResult<List<ConversationDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
+        {
+            return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
+        }
+
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<GroupDto>), StatusCodes.Status200OK)]
