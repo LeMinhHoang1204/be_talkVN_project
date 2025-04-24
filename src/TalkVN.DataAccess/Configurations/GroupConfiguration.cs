@@ -33,6 +33,20 @@ namespace TalkVN.DataAccess.Configurations
                 .HasForeignKey(ugr => ugr.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure relationship with GroupInvitation
+            modelBuilder
+                .HasMany(g => g.GroupInvitations)
+                .WithOne(gi => gi.Group)
+                .HasForeignKey(gi => gi.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure relationship with JoinGroupRequest
+            modelBuilder
+                .HasMany(g => g.JoinGroupRequests)
+                .WithOne(jgr => jgr.Group)
+                .HasForeignKey(jgr => jgr.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             //configure relationship with GroupNotification
             modelBuilder
                 .HasMany(g => g.GroupNotifications)

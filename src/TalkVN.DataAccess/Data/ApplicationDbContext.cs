@@ -66,6 +66,9 @@ namespace TalkVN.DataAccess.Data
 
         public DbSet<VoiceChatParticipant> VoiceChatParticipants { get; set; }
 
+        public DbSet<GroupInvitation> GroupInvitations { get; set; }
+
+        public DbSet<JoinGroupRequest> JoinGroupRequests { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
