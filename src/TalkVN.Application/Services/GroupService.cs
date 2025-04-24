@@ -1,10 +1,8 @@
 ﻿using TalkVN.Application.Services.Interface;
 using AutoMapper;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 using TalkVN.Application.Exceptions;
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
@@ -195,6 +193,41 @@ namespace TalkVN.Application.Services
             _logger.LogInformation("Join group request created for UserId: {UserId}, GroupId: {GroupId}", userId,
                 request.GroupId);
             return requestDto;
+        }
+
+        public async Task ApproveJoinGroupRequestAsync(RequestActionDto dto)
+        {
+            var ownerId = _claimService.GetUserId();
+            var request = await _joinGroupRequestRepository
+                .GetFirstOrDefaultAsync(
+                    x => x.Id == dto.JoinGroupRequestId,
+                    x => x.Include(x => x.Group)
+                        .Include(x => x.Invitation));
+            if (request == null)
+                throw new NotFoundException("Join request not found");
+
+            if (request.Group.CreatorId != ownerId)
+                throw new UnauthorizedAccessException("Only group owner can approve requests");
+
+            // Cập nhật trạng thái yêu cầu
+            request.Status = JoinRequestStatus.Approved.ToString();
+            request.UpdatedOn = DateTime.UtcNow;
+            request.UpdatedBy = ownerId;
+            await _joinGroupRequestRepository.UpdateAsync(request);
+
+            // Tạo user group role
+            var memberRole = await _roleManager.FindByNameAsync("Member");
+            var newUserGroupRole = new UserGroupRole
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.RequestedUserId,
+                GroupId = request.GroupId,
+                RoleId = memberRole.Id,
+                AcceptedBy = ownerId,
+                InvitedBy = request.Invitation?.CreatedBy ?? ownerId // nếu có
+            };
+            await _userGroupRoleRepository.AddAsync(newUserGroupRole);
+            _logger.LogInformation("User {UserId} approved join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
         }
     }
 }

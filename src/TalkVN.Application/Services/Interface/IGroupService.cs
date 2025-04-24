@@ -12,5 +12,6 @@ namespace TalkVN.Application.Services.Interface
         Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId);
         Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code);
         Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto dto);
+        Task ApproveJoinGroupRequestAsync(RequestActionDto dto);
     }
 }

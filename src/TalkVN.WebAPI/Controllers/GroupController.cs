@@ -99,11 +99,18 @@ namespace TalkVN.WebAPI.Controllers
 
         [HttpPost]
         [Route("request-join-group")]
-        [ProducesResponseType(typeof(ApiResult<JoinGroupRequestDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> RequestJoinGroupAsync([FromBody] JoinGroupRequestDto dto)
         {
             var result = await _groupService.RequestJoinGroupAsync(dto);
             return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
+        }
+
+        [HttpPost]
+        [Route("approve-join-request")]
+        public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
+        {
+            await _groupService.ApproveJoinGroupRequestAsync(dto);
+            return Ok(ApiResult<string>.Success("Approved successfully"));
         }
     }
 }

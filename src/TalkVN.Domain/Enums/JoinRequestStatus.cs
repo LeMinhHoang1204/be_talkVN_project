@@ -3,6 +3,6 @@
 public enum JoinRequestStatus
 {
     Pending,
-    Accepted,
+    Approved,
     Rejected,
 }
