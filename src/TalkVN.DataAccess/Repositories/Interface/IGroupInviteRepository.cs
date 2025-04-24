@@ -5,4 +5,5 @@ namespace TalkVN.DataAccess.Repositories.Interface;
 public interface IGroupInviteRepository : IBaseRepository<GroupInvitation>
 {
     Task<GroupInvitation?> GetUserInvitaionsByGroupId(Guid groupId, string userId);
+
 }

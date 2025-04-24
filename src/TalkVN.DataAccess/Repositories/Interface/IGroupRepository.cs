@@ -5,5 +5,6 @@ namespace TalkVN.DataAccess.Repositories.Interface
     public interface IGroupRepository : IBaseRepository<Group>
     {
         Task<bool> IsGroupNameExistsAsync(string name);
+        Task<Group> GetGroupByInvitationCode(string code);
     }
 }

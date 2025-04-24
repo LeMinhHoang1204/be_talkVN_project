@@ -38,7 +38,7 @@ namespace TalkVN.WebAPI.Controllers
         //get user's created groups
         [HttpGet]
         [Route("")]
-        [ProducesResponseType(typeof(ApiResult<List<ConversationDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllGroupsAsync([FromQuery] PaginationFilter pagination)
         {
             return Ok(ApiResult<List<GroupDto>>.Success(await _groupService.GetAllGroupsAsync(pagination)));
@@ -47,7 +47,7 @@ namespace TalkVN.WebAPI.Controllers
         //get group's members
         [HttpGet]
         [Route("{groupId}/members")]
-        [ProducesResponseType(typeof(ApiResult<List<ConversationDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        [ProducesResponseType(typeof(ApiResult<List<UserGroupRoleDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
         {
             return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
@@ -76,6 +76,7 @@ namespace TalkVN.WebAPI.Controllers
             }
         }
 
+        //create invitation
         [HttpPost]
         [Route("create-invitation/{groupId}")]
         [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
@@ -84,6 +85,25 @@ namespace TalkVN.WebAPI.Controllers
             var userId = _claimService.GetUserId();
             var result = await _groupInvitationService.CreateGroupInvitationAsync(groupId, userId);
             return Ok(ApiResult<GroupInvitationDto>.Success(result));
+        }
+
+        //get group info by invitation code -> called when user click on the link
+        [HttpGet]
+        [Route("invitation/{code}/getGroupInfo")]
+        [ProducesResponseType(typeof(ApiResult<GroupDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetGroupInfoByInvitationCode(string code)
+        {
+            var result = await _groupService.GetGroupInfoByInvitationCodeAsync(code);
+            return Ok(ApiResult<GroupDto>.Success(result));
+        }
+
+        [HttpPost]
+        [Route("request-join-group")]
+        [ProducesResponseType(typeof(ApiResult<JoinGroupRequestDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> RequestJoinGroupAsync([FromBody] JoinGroupRequestDto dto)
+        {
+            var result = await _groupService.RequestJoinGroupAsync(dto);
+            return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
         }
     }
 }

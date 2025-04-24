@@ -25,6 +25,8 @@ namespace TalkVN.Application.Services
             _logger = logger;
         }
 
+        //find existing invitation by groupId and userId
+        // if not found, create new invitation
         public async Task<GroupInvitationDto> CreateGroupInvitationAsync(Guid groupId, string userId)
         {
             _logger.LogDebug("CreateGroupInvitationAsync started - GroupId: {GroupId}, UserId: {UserId}", groupId, userId);
@@ -73,7 +75,5 @@ namespace TalkVN.Application.Services
                 };
             }
         }
-
-
     }
 }

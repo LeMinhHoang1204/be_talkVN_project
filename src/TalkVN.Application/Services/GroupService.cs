@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using TalkVN.Application.Exceptions;
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Group;
@@ -22,6 +23,8 @@ namespace TalkVN.Application.Services
     {
         private readonly IGroupRepository _groupRepository;
         private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
+        private readonly IBaseRepository<JoinGroupRequest> _joinGroupRequestRepository;
+        private readonly IBaseRepository<GroupInvitation> _groupInvitationRepository;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,6 +41,8 @@ namespace TalkVN.Application.Services
         {
             _groupRepository = groupRepository;
             _userGroupRoleRepository = repositoryFactory.GetRepository<UserGroupRole>();
+            _joinGroupRequestRepository = repositoryFactory.GetRepository<JoinGroupRequest>();
+            _groupInvitationRepository = repositoryFactory.GetRepository<GroupInvitation>();
             _claimService = claimService;
             _userRepository = userRepository;
             _mapper = mapper;
@@ -140,6 +145,56 @@ namespace TalkVN.Application.Services
             return groupDto;
         }
 
+        public async Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code)
+        {
+            var group = await this._groupRepository.GetGroupByInvitationCode(code);
 
+            return new GroupDto
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Avatar = group.Avatar,
+                Description = group.Description,
+                MaxQuantity = group.MaxQuantity,
+            };
+        }
+
+        public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
+        {
+            var userId = _claimService.GetUserId();
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            var group = await _groupRepository.GetFirstOrDefaultAsync(x => x.Id == request.GroupId);
+            if (group == null)
+            {
+                throw new NotFoundException("Group not found");
+            }
+
+            //find invitationId based on invitation code
+            Guid? invitationId = null;
+            var invitation = await _groupInvitationRepository.GetFirstOrDefaultAsync(x => x.InvitationCode == request.InvitationCode);
+            invitationId = invitation.Id;
+            var newRequest = new JoinGroupRequest
+            {
+                Id = Guid.NewGuid(),
+                GroupId = request.GroupId,
+                InvitationId = invitationId,
+                RequestedUserId = userId,
+                CreatedOn = DateTime.UtcNow,
+                Status = JoinRequestStatus.Pending.ToString()
+            };
+            await _joinGroupRequestRepository.AddAsync(newRequest);
+            var requestDto = new JoinGroupRequestDto
+            {
+                GroupId = newRequest.GroupId,
+                InvitationCode = invitation.InvitationCode,
+            };
+            _logger.LogInformation("Join group request created for UserId: {UserId}, GroupId: {GroupId}", userId,
+                request.GroupId);
+            return requestDto;
+        }
     }
 }
