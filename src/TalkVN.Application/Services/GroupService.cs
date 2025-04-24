@@ -139,5 +139,7 @@ namespace TalkVN.Application.Services
             groupDto.Creator = _mapper.Map<UserDto>(await _userRepository.GetFirstOrDefaultAsync(x => x.Id == userId));
             return groupDto;
         }
+
+
     }
 }

@@ -19,15 +19,18 @@ namespace TalkVN.WebAPI.Controllers
     public class GroupController : ControllerBase
     {
         private readonly IGroupService _groupService;
+        private readonly IGroupInvitationService _groupInvitationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<GroupController> _logger;
 
         public GroupController(IGroupService groupService,
+            IGroupInvitationService groupInvitationService,
             IClaimService claimService,
             ILogger<GroupController> logger)
         {
             _groupService = groupService;
+            _groupInvitationService = groupInvitationService;
             _claimService = claimService;
             _logger = logger;
         }
@@ -71,6 +74,16 @@ namespace TalkVN.WebAPI.Controllers
             {
                 return StatusCode(500, new { message = ex.Message });
             }
+        }
+
+        [HttpPost]
+        [Route("create-invitation/{groupId}")]
+        [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+            var result = await _groupInvitationService.CreateGroupInvitationAsync(groupId, userId);
+            return Ok(ApiResult<GroupInvitationDto>.Success(result));
         }
     }
 }
