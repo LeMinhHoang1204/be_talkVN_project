@@ -24,10 +24,11 @@
 		<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.2" />
 		<PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0" />
 		<PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="MachineLearning\" />
+<!--	  <Folder Include="MachineLearning\" />-->
 	  <Folder Include="Middleware\" />
 	  <Folder Include="Authorization\" />
 	</ItemGroup>
