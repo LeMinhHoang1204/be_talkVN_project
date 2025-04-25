@@ -14,12 +14,16 @@
 		<PackageReference Include="MediatR" Version="12.4.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
 		<PackageReference Include="System.Linq.Expressions" Version="4.3.0" />
-		<PackageReference Include="Microsoft.ML" Version="4.0.0" />
-		<PackageReference Include="Microsoft.ML.Recommender" Version="0.22.0" />
-	</ItemGroup>
+<!--		<PackageReference Include="Microsoft.ML" Version="4.0.0" />-->
+<!--		<PackageReference Include="Microsoft.ML.Recommender" Version="0.22.0" />-->
+<!--        <PackageReference Include="Microsoft.ML.AutoML" Version="0.22.0" />-->
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
+    </ItemGroup>
 	
   <ItemGroup>
     <ProjectReference Include="..\TalkVN.DataAccess\TalkVN.DataAccess.csproj" />
+      <Compile Remove="MachineLearning\**\*.cs" />
+
   </ItemGroup>
 	
   <ItemGroup>

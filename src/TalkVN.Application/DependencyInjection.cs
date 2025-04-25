@@ -1,7 +1,7 @@
 using System.Reflection;
 
-using TalkVN.Application.MachineLearning.Services;
-using TalkVN.Application.MachineLearning.Services.Interface;
+// using TalkVN.Application.MachineLearning.Services;
+// using TalkVN.Application.MachineLearning.Services.Interface;
 using TalkVN.Application.Mapping;
 using TalkVN.Application.Services;
 using TalkVN.Application.Services.Interface;
@@ -48,7 +48,7 @@ namespace TalkVN.Application
          //   services.AddScoped<IPostService, PostService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IFollowService, FollowService>();
-            services.AddScoped<ITrainingModelService, TrainingModelService>();
+            // services.AddScoped<ITrainingModelService, TrainingModelService>();
             return services;
         }
     }

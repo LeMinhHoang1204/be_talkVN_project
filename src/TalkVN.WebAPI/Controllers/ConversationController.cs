@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Conversation;
@@ -20,20 +22,22 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IConversationService _conversationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
-        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService)
+        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService, IUserRepository userRepository)
         {
             _logger = logger;
             _conversationService = conversationService;
             _claimService = claimService;
+            _userRepository = userRepository;
         }
+
         [HttpGet]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<List<ConversationDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
-
         public async Task<IActionResult> GetAllConversationsAsync([FromQuery] PaginationFilter pagination)
         {
             return Ok(ApiResult<List<ConversationDto>>.Success(await _conversationService.GetAllConversationsAsync(pagination)));
         }
+
         [HttpGet]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDetailDto>), StatusCodes.Status200OK)] // OK với ProductResponse
@@ -69,6 +73,37 @@ namespace TalkVN.WebAPI.Controllers
 
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
         }
+        // search a conversation by username
+        [HttpPost]
+        [Route("search")]
+        [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> SearchonversationAsync([FromQuery] string Username)
+        {
+            // Nếu truyền username → tìm userId
+            List<string> userIds = new();
+
+            // Lấy userId của người tạo từ claim
+            var creatorUserId = _claimService.GetUserId();
+            if (!string.IsNullOrEmpty(creatorUserId))
+            {
+                Console.WriteLine("creatorID: " + creatorUserId); // checked
+                userIds.Add(creatorUserId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Username))
+            {
+                Console.WriteLine("Username123: " + Username); // checked
+                var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == Username); // sai o day
+                if (user == null)
+                {
+                    return NotFound(ApiResult<string>.Failure(new[] { new ApiResultError(ApiResultErrorCodes.NotFound, "User Not Found") }));
+                }
+                userIds.Add(user.Id);
+            }
+
+            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
+        }
+
         [HttpPost]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse

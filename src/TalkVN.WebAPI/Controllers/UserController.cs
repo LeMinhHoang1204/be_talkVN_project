@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+
 using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.User;
 using TalkVN.Application.Services.Interface;
@@ -34,6 +37,27 @@ namespace TalkVN.WebAPI.Controllers
         {
             return Ok(ApiResult<LoginResponseDto>.Success(await _userService.LoginAsync(loginRequestDto)));
         }
+
+        [HttpGet("login-google")]
+        [AllowAnonymous]
+        public async Task LoginGoogle()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "User", null, Request.Scheme);
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = redirectUrl,
+            };
+            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, props);
+        }
+
+        [HttpGet("login-google/response")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            Console.WriteLine("Google response");
+            return Ok(ApiResult<LoginResponseDto>.Success(await _userService.LoginGoogleAsync()));
+        }
+
         [HttpPost("logout")]
         [ProducesResponseType(typeof(ApiResult<bool>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> LogoutUser([FromBody] Guid loginHistoryId)

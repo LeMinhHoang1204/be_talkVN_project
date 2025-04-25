@@ -2,6 +2,10 @@ using System.Security.Claims;
 
 using AutoMapper;
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+
 using TalkVN.Application.Exceptions;
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Localization;
@@ -14,6 +18,7 @@ using TalkVN.Domain.Identity;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace TalkVN.Application.Services
 {
@@ -27,6 +32,8 @@ namespace TalkVN.Application.Services
         private RoleManager<ApplicationRole> _roleManager;
         private ITokenService _tokenService;
         private IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         public UserService(ILogger<UserService> logger
             , IUserRepository userRepository
             , IRepositoryFactory repositoryFactory
@@ -34,7 +41,8 @@ namespace TalkVN.Application.Services
             , RoleManager<ApplicationRole> roleManager
             , ITokenService tokenService
             , IMapper mapper
-            , IClaimService claimService)
+            , IClaimService claimService
+            , IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _userRepository = userRepository;
@@ -44,8 +52,8 @@ namespace TalkVN.Application.Services
             _tokenService = tokenService;
             _mapper = mapper;
             _claimService = claimService;
+            _httpContextAccessor = httpContextAccessor;
         }
-
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
         {
@@ -88,6 +96,66 @@ namespace TalkVN.Application.Services
             };
             _logger.Log(LogLevel.Information, $"User {loginHistory.UserId} login at ${loginHistory.LoginTime}");
             return loginResponse;
+        }
+
+        public async Task<LoginResponseDto> LoginGoogleAsync()
+        {
+            var result = await _httpContextAccessor.HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+
+            if (!result.Succeeded || result?.Principal == null)
+            {
+                throw new InvalidModelException("Google login failed.");
+            }
+
+            var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new InvalidModelException("Cannot get email from Google.");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new UserApplication
+                {
+                    Email = email,
+                    UserName = email,
+                    DisplayName = result.Principal.FindFirstValue(ClaimTypes.Name),
+                    AvatarUrl = result.Principal.FindFirstValue("picture") ?? "", // optional
+                    EmailConfirmed = true,
+                    UserStatus = Domain.Enums.UserStatus.Public,
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    throw new InvalidModelException("User creation failed.");
+                }
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            LoginHistory loginHistory = new()
+            {
+                Id = Guid.NewGuid(),
+                LoginTime = DateTime.UtcNow,
+                UserId = user.Id,
+                IsDeleted = false,
+            };
+
+            var accessToken = _tokenService.GenerateAccessToken(user, roles, loginHistory);
+            var refreshToken = GenerateRefreshToken(loginHistory);
+            await _loginHistoryRepository.AddAsync(loginHistory);
+
+            var userDto = _mapper.Map<UserDto>(user);
+
+            return new LoginResponseDto
+            {
+                RefreshToken = refreshToken,
+                AccessToken = accessToken,
+                User = userDto,
+                LoginHistoryId = loginHistory.Id
+            };
         }
 
         public async Task<bool> LogoutAsync(Guid loginHistoryId)

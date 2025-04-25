@@ -10,6 +10,8 @@ using TalkVN.WebAPI;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +20,29 @@ using TalkVN.Domain.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
+DotNetEnv.Env.Load();
+builder.Configuration
+    .AddEnvironmentVariables();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+    .AddCookie(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Không sử dụng cookie bảo mật trong môi trường phát triển
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        // options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
+        // options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
+
+        options.ClientId = Environment.GetEnvironmentVariable("GoogleKeys__ClientId");
+        options.ClientSecret = Environment.GetEnvironmentVariable("GoogleKeys__ClientSecret");
+        options.CallbackPath = new PathString("/api/User/login-google/callback");
+    });
 
 // Add services to the container.
 var env = builder.Environment;
@@ -25,7 +50,6 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: false, reloadOnChange: true);
 
-DotNetEnv.Env.Load();
 ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
 builder.Services
     .AddFluentValidationAutoValidation()
@@ -95,6 +119,7 @@ app.AddSignalRHub();
 //         .AllowAnyHeader()
 //     );
 app.MapControllers();
+Console.WriteLine(builder.Configuration["GoogleKeys:ClientId"]);
 
 app.Run();
 
