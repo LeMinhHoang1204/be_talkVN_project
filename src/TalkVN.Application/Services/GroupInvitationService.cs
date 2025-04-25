@@ -14,7 +14,7 @@ namespace TalkVN.Application.Services
         private readonly IGroupInviteRepository _groupInviteRepo;
         private readonly IMapper _mapper;
         private readonly ILogger<GroupInvitationService> _logger;
-        private readonly string _baseInvitationUrl = "https://talkvn-id-vn/invitation/"; // hoặc config
+        private readonly string _baseInvitationUrl = "https://talkvn.id.vn/invitation/"; // hoặc config
 
         public GroupInvitationService(IGroupInviteRepository groupInviteRepo
             , IMapper mapper

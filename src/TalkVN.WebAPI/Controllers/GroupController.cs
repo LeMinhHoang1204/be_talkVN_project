@@ -89,7 +89,7 @@ namespace TalkVN.WebAPI.Controllers
 
         //get group info by invitation code -> called when user click on the link
         [HttpGet]
-        [Route("invitation/{code}/getGroupInfo")]
+        [Route("invitation/{code}")]
         [ProducesResponseType(typeof(ApiResult<GroupDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGroupInfoByInvitationCode(string code)
         {
