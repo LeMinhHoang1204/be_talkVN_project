@@ -70,7 +70,7 @@ namespace TalkVN.WebAPI.Controllers
             await _cacheService.GetOrSetAsync(authCode, () => Task.FromResult(loginResponseDto));
 
             // redirect to the client with the auth code
-            return Redirect($"http://localhost:3000/auth/google/callback?authCode={authCode}");
+            return Redirect($"http://fetalkvnproject.vercel.app/auth/google/callback?authCode={authCode}");
         }
 
         [HttpPost("exchange-authcode")]
