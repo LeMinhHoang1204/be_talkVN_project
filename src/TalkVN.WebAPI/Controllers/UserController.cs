@@ -8,6 +8,8 @@ using TalkVN.Application.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using TalkVN.Application.Services.Caching;
+
 namespace TalkVN.WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -17,10 +19,12 @@ namespace TalkVN.WebAPI.Controllers
     {
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        private readonly ICachingService _cacheService;
+        public UserController(IUserService userService, ILogger<UserController> logger, ICachingService cacheService)
         {
             _userService = userService;
             _logger = logger;
+            _cacheService = cacheService;
         }
 
         [HttpPost("register")]
@@ -55,8 +59,35 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> GoogleResponse()
         {
             Console.WriteLine("Google response");
-            return Ok(ApiResult<LoginResponseDto>.Success(await _userService.LoginGoogleAsync()));
+            // return Ok(ApiResult<LoginResponseDto>.Success(await _userService.LoginGoogleAsync()));
+
+            LoginResponseDto loginResponseDto = await this._userService.LoginGoogleAsync();
+
+            // generate a new auth code
+            var authCode = Guid.NewGuid().ToString("N");
+
+            // cache the auth code, default timespan have 1 hour
+            await _cacheService.GetOrSetAsync(authCode, () => Task.FromResult(loginResponseDto));
+
+            // redirect to the client with the auth code
+            return Redirect($"http://localhost:3000/auth/google/callback?authCode={authCode}");
         }
+
+        [HttpPost("exchange-authcode")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResult<LoginResponseDto>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> ExchangeAuthCode([FromQuery] string authCode)
+        {
+            LoginResponseDto loginResponseDto = await _cacheService.Get<LoginResponseDto>(authCode);
+
+            if (loginResponseDto == null)
+            {
+                return BadRequest("Invalid or expired auth code.");
+            }
+
+            return Ok(ApiResult<LoginResponseDto>.Success(loginResponseDto));
+        }
+
 
         [HttpPost("logout")]
         [ProducesResponseType(typeof(ApiResult<bool>), StatusCodes.Status200OK)] // OK với ProductResponse
