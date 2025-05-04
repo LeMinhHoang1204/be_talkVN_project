@@ -54,7 +54,7 @@ namespace TalkVN.WebAPI.Controllers
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, props);
         }
 
-        [HttpGet("login-google/response")]
+        [HttpGet("login-google/response", Name = "GoogleResponse")]
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
