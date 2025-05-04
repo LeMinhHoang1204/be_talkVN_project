@@ -49,59 +49,61 @@ namespace TalkVN.WebAPI.Controllers
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> CreateConversationAsync([FromBody] RequestCreateConversationDto request)
+        public async Task<IActionResult> CreateConversationAsync([FromBody] List<string> userIds)
         {
-            // Nếu truyền username → tìm userId
-            List<string> userIds = request.UserIds ?? new();
-
-            // Lấy userId của người tạo từ claim
-            var creatorUserId = _claimService.GetUserId();
-            if (!string.IsNullOrEmpty(creatorUserId))
-            {
-                userIds.Add(creatorUserId);
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Username))
-            {
-                var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == request.Username);
-                if (user == null)
-                {
-                    return NotFound(ApiResult<string>.Failure(new[] { new ApiResultError(ApiResultErrorCodes.NotFound, "User Not Found") }));
-                }
-                userIds.Add(user.Id);
-            }
-
             return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
         }
         // search a conversation by username
-        [HttpPost]
+        [HttpGet]
         [Route("search")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> SearchonversationAsync([FromQuery] string Username)
+        public async Task<IActionResult> SearchConversationAsync([FromQuery] List<string> Usernames, [FromQuery] PaginationFilter pagination)
         {
             // Nếu truyền username → tìm userId
             List<string> userIds = new();
-
-            // Lấy userId của người tạo từ claim
             var creatorUserId = _claimService.GetUserId();
-            if (!string.IsNullOrEmpty(creatorUserId))
+            foreach (var username in Usernames)
             {
-                Console.WriteLine("creatorID: " + creatorUserId); // checked
-                userIds.Add(creatorUserId);
-            }
+                if (string.IsNullOrWhiteSpace(username))
+                    continue;
 
-            if (!string.IsNullOrWhiteSpace(Username))
-            {
-                Console.WriteLine("Username123: " + Username); // checked
-                var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == Username); // sai o day
+                var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == username);
                 if (user == null)
                 {
-                    return NotFound(ApiResult<string>.Failure(new[] { new ApiResultError(ApiResultErrorCodes.NotFound, "User Not Found") }));
+                    return NotFound(ApiResult<string>.Failure(new[]
+                    {
+                        new ApiResultError(ApiResultErrorCodes.NotFound, $"User '{username}' not found")
+                    }));
                 }
+
+                if (creatorUserId == user.Id)
+                {
+                    return BadRequest(ApiResult<string>.Failure(new[]
+                    {
+                        new ApiResultError(ApiResultErrorCodes.NotFound, "You cannot search yourself")
+                    }));
+                }
+
                 userIds.Add(user.Id);
             }
 
-            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
+            if (!userIds.Any())
+            {
+                return BadRequest(ApiResult<string>.Failure(new[]
+                {
+                    new ApiResultError(ApiResultErrorCodes.ModelValidation, "No valid usernames provided")
+                }));
+            }
+
+            var conversations = await _conversationService.GetConversationsByUserIdAsync(userIds, pagination);
+
+            var response = new SearchConversationResponseDto
+            {
+                Conversations = conversations,
+                UserIds = userIds
+            };
+
+            return Ok(ApiResult<SearchConversationResponseDto>.Success(response));
         }
 
         [HttpPost]

@@ -99,17 +99,45 @@ namespace TalkVN.Application.Services
 
         }
 
+        public async Task<List<ConversationDto>> GetConversationsByUserIdAsync(List<string> userIds, PaginationFilter paginationFilter)
+        {
+            var userId = _claimService.GetUserId();
+            var paginationResponse = await _conversationRepository
+                .GetAllAsync(
+                    p => p.TextChatType == TextChatType.Person.ToString() && // Filter by TextChatType
+                                p.TextChatParticipants.Any(p => p.UserId == userId) &&
+                                p.TextChatParticipants.Any(tp => userIds.Contains(tp.UserId))
+                    , p => p.OrderByDescending(c => c.UpdatedOn), paginationFilter.PageIndex, paginationFilter.PageSize
+                    , query => query.Include(c => c.LastMessage)
+                        .Include(c => c.TextChatParticipants));
+            List<ConversationDto> response = new();
+            foreach (TextChat c in paginationResponse.Items)
+            {
+                var receiverIds = c.TextChatParticipants.Where(u => u.UserId != userId).Select(p => p.UserId);
+                var receiverUsers = await _userRepository.GetAllAsync(p => receiverIds.Contains(p.Id));
+                ConversationDto conversationDto = new();
+                conversationDto.LastMessage = _mapper.Map<MessageDto>(c.LastMessage);
+                conversationDto.IsSeen = c.IsSeen;
+                conversationDto.UserReceivers = _mapper.Map<List<UserDto>>(receiverUsers);
+                conversationDto.Id = c.Id;
+                conversationDto.UserReceiverIds = receiverIds.ToList();
+                response.Add(conversationDto);
+            }
+            return response;
+        }
+
         public async Task<ConversationDto> CreateConversationAsync(List<string> userIds)
         {
             var senderId = _claimService.GetUserId();
-            if (userIds.Count < 2)
+            if (userIds.Count < 1)
             {
                 throw new InvalidModelException(ValidationTexts.NotValidate.Format(userIds.GetType(), userIds));
             }
+            userIds.Add(senderId);
             if (userIds.Count == 2)
             {
                 var conversationExisted = await _conversationRepository.IsConversationExisted(userIds[0], userIds[1]);
-                if (conversationExisted != null)
+                if (conversationExisted != null) // case: existed
                 {
                     var conversationExistedDto = _mapper.Map<ConversationDto>(conversationExisted);
                     var otherUser = userIds[0] == senderId ? userIds[1] : userIds[0];
@@ -117,6 +145,7 @@ namespace TalkVN.Application.Services
                     return conversationExistedDto;
                 }
             }
+            // case: not existed || group
             TextChat textChat = new TextChat()
             {
                 IsDeleted = false,

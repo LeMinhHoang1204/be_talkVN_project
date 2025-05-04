@@ -8,6 +8,7 @@ namespace TalkVN.Application.Services.Interface
     {
         Task<List<ConversationDto>> GetAllConversationsAsync(PaginationFilter query);
         Task<ConversationDetailDto> GetConversationsByIdAsync(Guid TextChatId, int messagePageIndex, int messagePageSize);
+        Task<List<ConversationDto>> GetConversationsByUserIdAsync(List<string> userIds, PaginationFilter query);
         // post
         Task<ConversationDto> CreateConversationAsync(List<string> userIds);
         Task<MessageDto> SendMessageAsync(Guid TextChatId, RequestSendMessageDto request);
