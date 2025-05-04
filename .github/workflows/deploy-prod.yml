@@ -25,6 +25,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no minhhoang@152.42.254.133 << 'EOF'
             cd ~/be_talkVN_project/docker/DockerCompose
+            git checkout main
             git pull origin main
             docker-compose -f docker-compose.prod.yml down
             docker system prune -a --volumes -f
