@@ -9,6 +9,9 @@ namespace TalkVN.Application.Services.Interface
     {
         Task<List<GroupDto>> GetAllGroupsAsync(PaginationFilter query);
         Task<GroupDto> CreateGroupAsync(RequestCreateGroupDto request);
-        //Task<List<UserDto>> GetMembersByGroupIdAsync(string groupId);
+        Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId);
+        Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code);
+        Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto dto);
+        Task ApproveJoinGroupRequestAsync(RequestActionDto dto);
     }
 }

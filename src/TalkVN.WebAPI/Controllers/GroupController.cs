@@ -19,15 +19,18 @@ namespace TalkVN.WebAPI.Controllers
     public class GroupController : ControllerBase
     {
         private readonly IGroupService _groupService;
+        private readonly IGroupInvitationService _groupInvitationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<GroupController> _logger;
 
         public GroupController(IGroupService groupService,
+            IGroupInvitationService groupInvitationService,
             IClaimService claimService,
             ILogger<GroupController> logger)
         {
             _groupService = groupService;
+            _groupInvitationService = groupInvitationService;
             _claimService = claimService;
             _logger = logger;
         }
@@ -35,10 +38,19 @@ namespace TalkVN.WebAPI.Controllers
         //get user's created groups
         [HttpGet]
         [Route("")]
-        [ProducesResponseType(typeof(ApiResult<List<ConversationDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllGroupsAsync([FromQuery] PaginationFilter pagination)
         {
             return Ok(ApiResult<List<GroupDto>>.Success(await _groupService.GetAllGroupsAsync(pagination)));
+        }
+
+        //get group's members
+        [HttpGet]
+        [Route("{groupId}/members")]
+        [ProducesResponseType(typeof(ApiResult<List<UserGroupRoleDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
+        {
+            return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
         }
 
         [HttpPost]
@@ -62,6 +74,43 @@ namespace TalkVN.WebAPI.Controllers
             {
                 return StatusCode(500, new { message = ex.Message });
             }
+        }
+
+        //create invitation
+        [HttpPost]
+        [Route("create-invitation/{groupId}")]
+        [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+            var result = await _groupInvitationService.CreateGroupInvitationAsync(groupId, userId);
+            return Ok(ApiResult<GroupInvitationDto>.Success(result));
+        }
+
+        //get group info by invitation code -> called when user click on the link
+        [HttpGet]
+        [Route("invitation/{code}")]
+        [ProducesResponseType(typeof(ApiResult<GroupDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetGroupInfoByInvitationCode(string code)
+        {
+            var result = await _groupService.GetGroupInfoByInvitationCodeAsync(code);
+            return Ok(ApiResult<GroupDto>.Success(result));
+        }
+
+        [HttpPost]
+        [Route("request-join-group")]
+        public async Task<IActionResult> RequestJoinGroupAsync([FromBody] JoinGroupRequestDto dto)
+        {
+            var result = await _groupService.RequestJoinGroupAsync(dto);
+            return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
+        }
+
+        [HttpPost]
+        [Route("approve-join-request")]
+        public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
+        {
+            await _groupService.ApproveJoinGroupRequestAsync(dto);
+            return Ok(ApiResult<string>.Success("Approved successfully"));
         }
     }
 }

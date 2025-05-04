@@ -20,6 +20,8 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
 
         public IEnumerable<TextChat> TextChats { get; set; } //1 group co nhieu textChat
         public IEnumerable<UserGroupRole> UserGroupRoles { get; set; } //1 group co nhieu usergrouprole
+        public IEnumerable<GroupInvitation> GroupInvitations { get; set; } //1 group co nhieu group invitation
+        public IEnumerable<JoinGroupRequest> JoinGroupRequests { get; set; } //1 group co nhieu joinGroupRequest
 
         public IEnumerable<MeetingSchedule> MeetingSchedules { get; set; } //1 group co nhieu meeting schedule
 

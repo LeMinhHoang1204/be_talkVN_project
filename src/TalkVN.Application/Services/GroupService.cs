@@ -1,10 +1,9 @@
 ﻿using TalkVN.Application.Services.Interface;
 using AutoMapper;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
+using TalkVN.Application.Exceptions;
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Group;
@@ -22,6 +21,8 @@ namespace TalkVN.Application.Services
     {
         private readonly IGroupRepository _groupRepository;
         private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
+        private readonly IBaseRepository<JoinGroupRequest> _joinGroupRequestRepository;
+        private readonly IBaseRepository<GroupInvitation> _groupInvitationRepository;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,6 +39,8 @@ namespace TalkVN.Application.Services
         {
             _groupRepository = groupRepository;
             _userGroupRoleRepository = repositoryFactory.GetRepository<UserGroupRole>();
+            _joinGroupRequestRepository = repositoryFactory.GetRepository<JoinGroupRequest>();
+            _groupInvitationRepository = repositoryFactory.GetRepository<GroupInvitation>();
             _claimService = claimService;
             _userRepository = userRepository;
             _mapper = mapper;
@@ -70,6 +73,28 @@ namespace TalkVN.Application.Services
                 var groupDto = _mapper.Map<GroupDto>(group);
                 groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
                 response.Add(groupDto);
+            }
+            return response;
+        }
+
+
+        public async Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+            var members = await _userGroupRoleRepository.GetAllAsync(
+                x => x.GroupId == groupId,
+                query => query.Include(x => x.User)
+            );
+            List<UserGroupRoleDto> response = new();
+            foreach (var member in members)
+            {
+                var userGroupRoleDto = _mapper.Map<UserGroupRoleDto>(member);
+                userGroupRoleDto.User = _mapper.Map<UserDto>(member.User);
+                response.Add(userGroupRoleDto);
             }
             return response;
         }
@@ -116,6 +141,93 @@ namespace TalkVN.Application.Services
             var groupDto = _mapper.Map<GroupDto>(group);
             groupDto.Creator = _mapper.Map<UserDto>(await _userRepository.GetFirstOrDefaultAsync(x => x.Id == userId));
             return groupDto;
+        }
+
+        public async Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code)
+        {
+            var group = await this._groupRepository.GetGroupByInvitationCode(code);
+
+            return new GroupDto
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Avatar = group.Avatar,
+                Description = group.Description,
+                MaxQuantity = group.MaxQuantity,
+            };
+        }
+
+        public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
+        {
+            var userId = _claimService.GetUserId();
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            var group = await _groupRepository.GetFirstOrDefaultAsync(x => x.Id == request.GroupId);
+            if (group == null)
+            {
+                throw new NotFoundException("Group not found");
+            }
+
+            //find invitationId based on invitation code
+            Guid? invitationId = null;
+            var invitation = await _groupInvitationRepository.GetFirstOrDefaultAsync(x => x.InvitationCode == request.InvitationCode);
+            invitationId = invitation.Id;
+            var newRequest = new JoinGroupRequest
+            {
+                Id = Guid.NewGuid(),
+                GroupId = request.GroupId,
+                InvitationId = invitationId,
+                RequestedUserId = userId,
+                CreatedOn = DateTime.UtcNow,
+                Status = JoinRequestStatus.Pending.ToString()
+            };
+            await _joinGroupRequestRepository.AddAsync(newRequest);
+            var requestDto = new JoinGroupRequestDto
+            {
+                GroupId = newRequest.GroupId,
+                InvitationCode = invitation.InvitationCode,
+            };
+            _logger.LogInformation("Join group request created for UserId: {UserId}, GroupId: {GroupId}", userId,
+                request.GroupId);
+            return requestDto;
+        }
+
+        public async Task ApproveJoinGroupRequestAsync(RequestActionDto dto)
+        {
+            var ownerId = _claimService.GetUserId();
+            var request = await _joinGroupRequestRepository
+                .GetFirstOrDefaultAsync(
+                    x => x.Id == dto.JoinGroupRequestId,
+                    x => x.Include(x => x.Group)
+                        .Include(x => x.Invitation));
+            if (request == null)
+                throw new NotFoundException("Join request not found");
+
+            if (request.Group.CreatorId != ownerId)
+                throw new UnauthorizedAccessException("Only group owner can approve requests");
+
+            // Cập nhật trạng thái yêu cầu
+            request.Status = JoinRequestStatus.Approved.ToString();
+            request.UpdatedOn = DateTime.UtcNow;
+            request.UpdatedBy = ownerId;
+            await _joinGroupRequestRepository.UpdateAsync(request);
+
+            // Tạo user group role
+            var memberRole = await _roleManager.FindByNameAsync("Member");
+            var newUserGroupRole = new UserGroupRole
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.RequestedUserId,
+                GroupId = request.GroupId,
+                RoleId = memberRole.Id,
+                AcceptedBy = ownerId,
+                InvitedBy = request.Invitation?.CreatedBy ?? ownerId // nếu có
+            };
+            await _userGroupRoleRepository.AddAsync(newUserGroupRole);
+            _logger.LogInformation("User {UserId} approved join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
         }
     }
 }

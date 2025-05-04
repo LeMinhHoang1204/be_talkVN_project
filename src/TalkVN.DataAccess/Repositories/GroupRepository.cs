@@ -14,5 +14,16 @@ namespace TalkVN.DataAccess.Repositories
             return await Context.Groups.AnyAsync(g => g.Name == name);
         }
 
+        public async Task<Group> GetGroupByInvitationCode(string code)
+        {
+            var group = await Context.GroupInvitations
+                .Include(i => i.Group)
+                .FirstOrDefaultAsync(i => i.InvitationCode == code && i.ExpirationDate >= DateTime.UtcNow);
+
+            if (group == null)
+                throw new Exception("Invalid link or expired invitation code");
+            return group.Group;
+        }
+
     }
 }

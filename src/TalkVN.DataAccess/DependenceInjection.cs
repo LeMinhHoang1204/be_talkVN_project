@@ -22,6 +22,7 @@ namespace TalkVN.DataAccess
             .AddScoped<IRepositoryFactory, RepositoryFactory>()
             .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<IConversationRepository, ConversationRepository>()
+            .AddScoped<IGroupInviteRepository, GroupInviteRepository>()
             .AddScoped<IGroupRepository, GroupRepository>()
             .AddScoped<IUserInteractionRepository, UserInteractionRepository>()
             .AddScoped<IUserFollowerRepository, UserFollowerRepository>();
