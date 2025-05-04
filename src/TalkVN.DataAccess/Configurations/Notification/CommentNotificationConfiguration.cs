@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace TalkVN.DataAccess.Configurations.Notification
 {
-    public class CommentNotificationConfiguration : IEntityTypeConfiguration<CommentNotification>
+    public class CommentNotificationConfiguration : IEntityTypeConfiguration<CommentNotifications>
     {
-        public void Configure(EntityTypeBuilder<CommentNotification> builder)
+        public void Configure(EntityTypeBuilder<CommentNotifications> builder)
         {
             builder.HasKey(n => n.Id);
-            builder.HasOne(n => n.ReceiverUser)
-                .WithMany()
-                .HasForeignKey(n => n.ReceiverUserId);
+            // builder.HasOne(n => n.ReceiverUser)
+            //     .WithMany()
+            //     .HasForeignKey(n => n.ReceiverUserId);
             builder.HasOne(n => n.LastInteractorUser)
                 .WithMany()
                 .HasForeignKey(n => n.LastInteractorUserId);

@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Identity;
 
+using TalkVN.Domain.Entities.ChatEntities;
+using TalkVN.Domain.Entities.SystemEntities.Group;
+
 namespace TalkVN.Domain.Identity
 {
     public class UserApplication : IdentityUser
@@ -14,6 +17,9 @@ namespace TalkVN.Domain.Identity
         public string? MediaAvatarType { get; set; }
         public UserStatus UserStatus { get; set; }
 
+        public IEnumerable<Message> Messages { get; set; } // Navigation property
+        public IEnumerable<TextChatParticipant> TextChatParticipants { get; set; } // Navigation property
 
+        public IEnumerable<Group> Groups { get; set; } // Navigation property
     }
 }

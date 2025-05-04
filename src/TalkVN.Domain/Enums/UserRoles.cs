@@ -2,7 +2,9 @@ namespace TalkVN.Domain.Enums
 {
     public enum UserRoles
     {
-        Admin = 0,
-        User = 1,
+        User = 0,
+        Owner = 1,
+        Admin = 2,
+        Member = 3
     }
 }

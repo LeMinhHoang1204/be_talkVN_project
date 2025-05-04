@@ -8,8 +8,8 @@ namespace TalkVN.Application.Mapping
     {
         public ConversationProfile()
         {
-            CreateMap<Conversation, ConversationDto>();
-            CreateMap<Conversation, ConversationDetailDto>();
+            CreateMap<TextChat, ConversationDto>();
+            CreateMap<TextChat, ConversationDetailDto>();
         }
     }
 }

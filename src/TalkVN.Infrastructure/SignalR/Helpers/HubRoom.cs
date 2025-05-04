@@ -2,9 +2,9 @@ namespace TalkVN.Infrastructure.SignalR.Helpers
 {
     public class HubRoom
     {
-        public static string ConversationHubJoinRoom(Guid conversationId)
+        public static string ConversationHubJoinRoom(Guid TextChatId)
         {
-            return $"{HubEnum.Conversation.ToString()}: ${conversationId}";
+            return $"{HubEnum.Conversation.ToString()}: ${TextChatId}";
         }
         public static string UserHubJoinRoom(string userId)
         {

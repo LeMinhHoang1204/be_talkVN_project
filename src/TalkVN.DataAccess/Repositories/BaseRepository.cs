@@ -211,7 +211,7 @@ namespace TalkVN.DataAccess.Repositories
 
             if (totalItems > 0)
             {
-                response.Items = await query.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+                response.Items = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             }
 
 

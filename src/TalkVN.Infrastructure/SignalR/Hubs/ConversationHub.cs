@@ -14,33 +14,33 @@ namespace TalkVN.Infrastructure.SignalR.Hubs
             _logger = logger;
         }
         public override Task OnConnectedAsync() => base.OnConnectedAsync();
-        public async Task JoinConversationGroup(Guid conversationId)
+        public async Task JoinConversationGroup(Guid TextChatId)
         {
-            var roomId = HubRoom.ConversationHubJoinRoom(conversationId);
+            var roomId = HubRoom.ConversationHubJoinRoom(TextChatId);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             await Clients.Group(roomId).ConversationJoined($"{Context.ConnectionId} has joined the room {roomId}");
         }
-        public async Task SendOffer(Guid conversationId, string sdp)
+        public async Task SendOffer(Guid TextChatId, string sdp)
         {
-            var roomId = HubRoom.ConversationHubJoinRoom(conversationId);
+            var roomId = HubRoom.ConversationHubJoinRoom(TextChatId);
             await Clients.OthersInGroup(roomId).ReceiveOffer(Context.ConnectionId, sdp);
         }
 
-        public async Task SendAnswer(Guid conversationId, string sdp)
+        public async Task SendAnswer(Guid TextChatId, string sdp)
         {
-            var roomId = HubRoom.ConversationHubJoinRoom(conversationId);
+            var roomId = HubRoom.ConversationHubJoinRoom(TextChatId);
             await Clients.OthersInGroup(roomId).ReceiveAnswer(Context.ConnectionId, sdp);
         }
 
-        public async Task SendIceCandidate(Guid conversationId, string candidate)
+        public async Task SendIceCandidate(Guid TextChatId, string candidate)
         {
-            var roomId = HubRoom.ConversationHubJoinRoom(conversationId);
+            var roomId = HubRoom.ConversationHubJoinRoom(TextChatId);
             await Clients.OthersInGroup(roomId).ReceiveIceCandidate(Context.ConnectionId, candidate);
         }
-        public async Task StartCall(Guid conversationId)
+        public async Task StartCall(Guid TextChatId)
         {
-            var roomId = HubRoom.ConversationHubJoinRoom(conversationId);
-            await Clients.OthersInGroup(roomId).ReceiveCall(conversationId);
+            var roomId = HubRoom.ConversationHubJoinRoom(TextChatId);
+            await Clients.OthersInGroup(roomId).ReceiveCall(TextChatId);
         }
 
     }

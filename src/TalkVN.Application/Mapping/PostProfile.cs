@@ -17,8 +17,8 @@ namespace TalkVN.Application.Mapping
             CreateMap<CreatePostMediaRequestDto, PostMedia>();
             CreateMap<PostMedia, PostMediaDto>();
             CreateMap<PostMediaDto, PostMedia>();
-            CreateMap<ResponseRecommendationModel, PostDto>()
-                .ConvertUsing(src => src.Post);
+            // CreateMap<ResponseRecommendationModel, PostDto>()
+                // .ConvertUsing(src => src.Post);
 
             //
 

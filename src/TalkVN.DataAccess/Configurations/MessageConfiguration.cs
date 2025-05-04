@@ -9,16 +9,16 @@ namespace TalkVN.DataAccess.Configurations
             // Configure primary key
             modelBuilder.HasKey(m => m.Id);
 
-            // Configure relationship with Conversation
+            // Configure relationship with TextChat
             modelBuilder
-                .HasOne(m => m.Conversation)
+                .HasOne(m => m.TextChat)
                 .WithMany(c => c.Messages)
-                .HasForeignKey(m => m.ConversationId);
+                .HasForeignKey(m => m.TextChatId);
 
             // Configure relationship with Sender
             modelBuilder
                 .HasOne(m => m.Sender)
-                .WithMany()
+                .WithMany(s => s.Messages)
                 .HasForeignKey(m => m.SenderId);
         }
     }
