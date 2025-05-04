@@ -4,6 +4,7 @@ using TalkVN.DataAccess.Data.Interceptor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace TalkVN.Infrastructure.EntityFrameworkCore
 {
@@ -17,10 +18,9 @@ namespace TalkVN.Infrastructure.EntityFrameworkCore
 
             builder.Services.AddDbContext<ApplicationDbContext>((provider, options) =>
             {
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                var connectionString = environment == "Development"
-                    ? configuration.GetSection("Database:ConnectionStrings").GetValue<string>("DefaultConnection")
-                    : configuration.GetSection("Database:ConnectionStrings").GetValue<string>("AWSConnection");
+                var connectionString = builder.Environment.IsProduction()
+                    ? builder.Configuration.GetConnectionString("AWSConnection")
+                    : builder.Configuration.GetConnectionString("DefaultConnection");
 
                 options
                     .AddInterceptors(provider.GetRequiredService<ContextSaveChangeInterceptor>())
