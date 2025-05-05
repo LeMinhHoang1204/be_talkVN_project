@@ -49,24 +49,24 @@ namespace TalkVN.WebAPI.Controllers
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> CreateConversationAsync([FromBody] List<string> userIds)
+        public async Task<IActionResult> CreateConversationAsync([FromBody] CreateConversationRequestDTO request)
         {
-            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
+            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(request.UserIds)));
         }
+
         // search a conversation by username
-        [HttpGet]
+        [HttpPost]
         [Route("search")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> SearchConversationAsync([FromQuery] List<string> Usernames, [FromQuery] PaginationFilter pagination)
+        public async Task<IActionResult> SearchConversationAsync([FromBody] SearchConversationRequest request, [FromQuery] PaginationFilter pagination)
         {
             // Nếu truyền username → tìm userId
             List<string> userIds = new();
             var creatorUserId = _claimService.GetUserId();
-            foreach (var username in Usernames)
+            foreach (var username in request.Usernames)
             {
                 if (string.IsNullOrWhiteSpace(username))
                     continue;
-
                 var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == username);
                 if (user == null)
                 {
@@ -75,7 +75,6 @@ namespace TalkVN.WebAPI.Controllers
                         new ApiResultError(ApiResultErrorCodes.NotFound, $"User '{username}' not found")
                     }));
                 }
-
                 if (creatorUserId == user.Id)
                 {
                     return BadRequest(ApiResult<string>.Failure(new[]
@@ -83,10 +82,8 @@ namespace TalkVN.WebAPI.Controllers
                         new ApiResultError(ApiResultErrorCodes.NotFound, "You cannot search yourself")
                     }));
                 }
-
                 userIds.Add(user.Id);
             }
-
             if (!userIds.Any())
             {
                 return BadRequest(ApiResult<string>.Failure(new[]
@@ -94,16 +91,7 @@ namespace TalkVN.WebAPI.Controllers
                     new ApiResultError(ApiResultErrorCodes.ModelValidation, "No valid usernames provided")
                 }));
             }
-
-            var conversations = await _conversationService.GetConversationsByUserIdAsync(userIds, pagination);
-
-            var response = new SearchConversationResponseDto
-            {
-                Conversations = conversations,
-                UserIds = userIds
-            };
-
-            return Ok(ApiResult<SearchConversationResponseDto>.Success(response));
+            return Ok(ApiResult<SearchConversationResponseDto>.Success(await _conversationService.GetConversationsByUserIdAsync(userIds, pagination)));
         }
 
         [HttpPost]
