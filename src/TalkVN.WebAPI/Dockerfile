@@ -24,7 +24,7 @@ RUN dotnet build "TalkVN.WebAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Stage 3: Publish
 FROM build AS publish
-RUN dotnet publish "TalkVN.WebAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "TalkVN.WebAPI.csproj" -c ${BUILD_CONFIGURATION:-Release} -o /app/publish /p:UseAppHost=false
 
 # Stage 4: Final
 FROM base AS final
