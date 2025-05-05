@@ -99,18 +99,19 @@ namespace TalkVN.Application.Services
 
         }
 
-        public async Task<List<ConversationDto>> GetConversationsByUserIdAsync(List<string> userIds, PaginationFilter paginationFilter)
+        public async Task<SearchConversationResponseDto> GetConversationsByUserIdAsync(List<string> userIds, PaginationFilter paginationFilter)
         {
             var userId = _claimService.GetUserId();
             var paginationResponse = await _conversationRepository
                 .GetAllAsync(
-                    p => p.TextChatType == TextChatType.Person.ToString() && // Filter by TextChatType
+                    p =>
+                                // p.TextChatType == TextChatType.Person.ToString() && // Filter by TextChatType
                                 p.TextChatParticipants.Any(p => p.UserId == userId) &&
                                 p.TextChatParticipants.Any(tp => userIds.Contains(tp.UserId))
                     , p => p.OrderByDescending(c => c.UpdatedOn), paginationFilter.PageIndex, paginationFilter.PageSize
                     , query => query.Include(c => c.LastMessage)
                         .Include(c => c.TextChatParticipants));
-            List<ConversationDto> response = new();
+            List<ConversationDto> conversationDtos = new();
             foreach (TextChat c in paginationResponse.Items)
             {
                 var receiverIds = c.TextChatParticipants.Where(u => u.UserId != userId).Select(p => p.UserId);
@@ -121,9 +122,17 @@ namespace TalkVN.Application.Services
                 conversationDto.UserReceivers = _mapper.Map<List<UserDto>>(receiverUsers);
                 conversationDto.Id = c.Id;
                 conversationDto.UserReceiverIds = receiverIds.ToList();
-                response.Add(conversationDto);
+                conversationDtos.Add(conversationDto);
             }
-            return response;
+
+            var searchedUsers = await _userRepository.GetAllAsync(p => userIds.Contains(p.Id));
+            var searchedUsersDto = _mapper.Map<List<UserDto>>(searchedUsers);
+
+            return new SearchConversationResponseDto
+            {
+                Conversations = conversationDtos,
+                SearchedUsers = searchedUsersDto,
+            };
         }
 
         public async Task<ConversationDto> CreateConversationAsync(List<string> userIds)
