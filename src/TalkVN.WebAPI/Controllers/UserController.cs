@@ -54,7 +54,7 @@ namespace TalkVN.WebAPI.Controllers
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, props);
         }
 
-        [HttpGet("login-google/response")]
+        [HttpGet("login-google/response", Name = "GoogleResponse")]
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -70,7 +70,11 @@ namespace TalkVN.WebAPI.Controllers
             await _cacheService.GetOrSetAsync(authCode, () => Task.FromResult(loginResponseDto));
 
             // redirect to the client with the auth code
-            return Redirect($"http://fetalkvnproject.vercel.app/auth/google/callback?authCode={authCode}");
+            // local environment
+            // return Redirect($"http://localhost:3000/auth/google/callback?authCode={authCode}");
+
+            // production environment
+            return Redirect($"https://talkvn.vercel.app/auth/google/callback?authCode={authCode}");
         }
 
         [HttpPost("exchange-authcode")]

@@ -5,8 +5,8 @@
       context: ../../
       dockerfile: src/TalkVN.WebAPI/Dockerfile
     ports:
-      - "80:8080"
-      - "443:8081"
+      - "8084:8080"
+      - "8085:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
 #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/talkvn.pfx
@@ -16,6 +16,26 @@
     networks:
       - productnetwork
     restart: unless-stopped
+    
+  mysql:
+    image: mysql:8.0.39
+    environment:
+      MYSQL_ROOT_PASSWORD: "Password12345!"
+      MYSQL_DATABASE: talkvndb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqlvol:/var/lib/mysql
+    networks:
+      - productnetwork
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   productnetwork:
+    
+volumes:
+  mysqlvol:
