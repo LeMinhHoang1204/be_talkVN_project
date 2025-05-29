@@ -2,18 +2,12 @@
 {
     public class UserGroupRole : BaseEntity
     {
-        public string UserId { get; set; }
-
-        public Guid GroupId { get; set; }
+        public Guid UserGroupId { get; set; }
 
         public string RoleId { get; set; }
 
-        public string AcceptedBy { get; set; }
 
-        public string InvitedBy { get; set; }
-
+        public UserGroup UserGroup { get; set; } // Navigation property
         public ApplicationRole Role { get; set; } // Navigation property
-        public Group.Group Group { get; set; } // Navigation property
-        public UserApplication User { get; set; } // Navigation property
     }
 }

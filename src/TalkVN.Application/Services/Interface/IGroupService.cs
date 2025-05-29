@@ -13,5 +13,7 @@ namespace TalkVN.Application.Services.Interface
         Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code);
         Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto dto);
         Task ApproveJoinGroupRequestAsync(RequestActionDto dto);
+
+        Task AddUserToChatsAsync(Guid groupId, string userId);
     }
 }

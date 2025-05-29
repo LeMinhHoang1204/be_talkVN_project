@@ -25,5 +25,12 @@ namespace TalkVN.DataAccess.Repositories
             return group.Group;
         }
 
+        public async Task<List<TextChat>> GetAllTextChatsByGroupIdAsync(Guid groupId)
+        {
+            return await Context.TextChats
+                .Where(tc => tc.GroupId == groupId)
+                .ToListAsync();
+        }
+
     }
 }

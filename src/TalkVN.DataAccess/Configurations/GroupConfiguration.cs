@@ -26,9 +26,9 @@ namespace TalkVN.DataAccess.Configurations
                 .HasForeignKey(c => c.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure relationship with UserGroupRole
+            // Configure relationship with UserGroup
             modelBuilder
-                .HasMany(g => g.UserGroupRoles)
+                .HasMany(g => g.UserGroups)
                 .WithOne(ugr => ugr.Group)
                 .HasForeignKey(ugr => ugr.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -52,13 +52,6 @@ namespace TalkVN.DataAccess.Configurations
                 .HasMany(g => g.GroupNotifications)
                 .WithOne(gn => gn.Group)
                 .HasForeignKey(gn => gn.GroupId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            //configure relationship with VoiceChatParticipant
-            modelBuilder
-                .HasMany(g => g.VoiceChatParticipants)
-                .WithOne(vcp => vcp.Group)
-                .HasForeignKey(vcp => vcp.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             //configure relationship with MeetingSchedule

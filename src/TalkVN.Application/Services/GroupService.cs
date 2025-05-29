@@ -10,6 +10,7 @@ using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Models.Dtos.User;
 using TalkVN.Application.Services.Interface;
 using TalkVN.DataAccess.Repositories.Interface;
+using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Entities.SystemEntities.Group;
 using TalkVN.Domain.Entities.SystemEntities.Relationships;
 using TalkVN.Domain.Enums;
@@ -20,29 +21,36 @@ namespace TalkVN.Application.Services
     public class GroupService : IGroupService
     {
         private readonly IGroupRepository _groupRepository;
-        private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
+        private readonly IBaseRepository<UserGroup> _userGroupRepository;
         private readonly IBaseRepository<JoinGroupRequest> _joinGroupRequestRepository;
+        private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
         private readonly IBaseRepository<GroupInvitation> _groupInvitationRepository;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
+        private readonly IConversationRepository _conversationRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<GroupService> _logger;
         private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly IBaseRepository<TextChatParticipant> _textChatParticipantRepository;
 
         public GroupService(IGroupRepository groupRepository,
             IClaimService claimService,
             IRepositoryFactory repositoryFactory,
+            IConversationRepository conversationRepository,
             IUserRepository userRepository,
             IMapper mapper,
             ILogger<GroupService> logger,
             RoleManager<ApplicationRole> roleManager)
         {
             _groupRepository = groupRepository;
+            _userGroupRepository = repositoryFactory.GetRepository<UserGroup>();
             _userGroupRoleRepository = repositoryFactory.GetRepository<UserGroupRole>();
             _joinGroupRequestRepository = repositoryFactory.GetRepository<JoinGroupRequest>();
             _groupInvitationRepository = repositoryFactory.GetRepository<GroupInvitation>();
+            _textChatParticipantRepository = repositoryFactory.GetRepository<TextChatParticipant>();
             _claimService = claimService;
             _userRepository = userRepository;
+            _conversationRepository = conversationRepository;
             _mapper = mapper;
             _logger = logger;
             _roleManager = roleManager;
@@ -85,7 +93,7 @@ namespace TalkVN.Application.Services
             {
                 throw new UnauthorizedAccessException("User not found");
             }
-            var members = await _userGroupRoleRepository.GetAllAsync(
+            var members = await _userGroupRepository.GetAllAsync(
                 x => x.GroupId == groupId,
                 query => query.Include(x => x.User)
             );
@@ -129,17 +137,56 @@ namespace TalkVN.Application.Services
             if (ownerRole == null)
                 throw new Exception("Role 'Owner' not found");
             //add owner to the group
-            var member = new UserGroupRole
+            var member = new UserGroup
             {
                 UserId = userId,
                 GroupId = group.Id,
-                RoleId = ownerRole.Id,
                 AcceptedBy = userId,
                 InvitedBy = userId,
             };
-            await _userGroupRoleRepository.AddAsync(member);
+            await _userGroupRepository.AddAsync(member);
             var groupDto = _mapper.Map<GroupDto>(group);
             groupDto.Creator = _mapper.Map<UserDto>(await _userRepository.GetFirstOrDefaultAsync(x => x.Id == userId));
+
+            //create default textChats
+            var textChat = new TextChat
+            {
+                Name = "General Chat",
+                GroupId = group.Id,
+                TextChatType = TextChatType.GroupChat.ToString(),
+                IsSeen = false,
+                CreatedBy = userId,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow
+            };
+            await this._conversationRepository.AddAsync(textChat);
+            var groupChat = new TextChat
+            {
+                Name = "General Call",
+                GroupId = group.Id,
+                TextChatType = TextChatType.GroupCall.ToString(),
+                IsSeen = false,
+                CreatedBy = userId,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow
+            };
+            await this._conversationRepository.AddAsync(groupChat);
+            //add owner to groupChats
+            var textchatParticipant = new TextChatParticipant
+            {
+                UserId = userId,
+                TextChatId = textChat.Id,
+                Status = GroupStatus.Active
+            };
+            await this._textChatParticipantRepository.AddAsync(textchatParticipant);
+            var groupchatParticipant = new TextChatParticipant
+            {
+                UserId = userId,
+                TextChatId = textChat.Id,
+                Status = GroupStatus.Active
+            };
+            await this._textChatParticipantRepository.AddAsync(groupchatParticipant);
+            //TODO: add role for the owner in those chats
             return groupDto;
         }
 
@@ -217,17 +264,46 @@ namespace TalkVN.Application.Services
 
             // Tạo user group role
             var memberRole = await _roleManager.FindByNameAsync("Member");
-            var newUserGroupRole = new UserGroupRole
+            var newUserGroup = new UserGroup
             {
                 Id = Guid.NewGuid(),
                 UserId = request.RequestedUserId,
                 GroupId = request.GroupId,
-                RoleId = memberRole.Id,
                 AcceptedBy = ownerId,
                 InvitedBy = request.Invitation?.CreatedBy ?? ownerId // nếu có
             };
-            await _userGroupRoleRepository.AddAsync(newUserGroupRole);
-            _logger.LogInformation("User {UserId} approved join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
+            await _userGroupRepository.AddAsync(newUserGroup);
+
+            //add role
+            var userGroupRole = new UserGroupRole
+            {
+                Id = Guid.NewGuid(),
+                UserGroupId = newUserGroup.Id,
+                RoleId = memberRole.Id
+            };
+            await _userGroupRoleRepository.AddAsync(userGroupRole);
+
+            //add user to group's chats
+            await this.AddUserToChatsAsync(request.GroupId, request.RequestedUserId);
+
+            this._logger.LogInformation("User {UserId} approved join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
+        }
+
+        public async Task AddUserToChatsAsync(Guid groupId, string userId)
+        {
+            List<TextChat> textChats = await _groupRepository.GetAllTextChatsByGroupIdAsync(groupId);
+            for(int i = 0; i < textChats.Count; i++)
+            {
+                var textChatParticipant = new TextChatParticipant
+                {
+                    UserId = userId,
+                    TextChatId = textChats[i].Id,
+                    Status = GroupStatus.Active
+                };
+                await this._textChatParticipantRepository.AddAsync(textChatParticipant);
+                //TODO: grant role/permission for user in these chats
+            }
+            _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace TalkVN.Application.Services.Interface
         Task<List<ConversationDto>> GetConversationsByUserIdAsync(List<string> userIds, PaginationFilter query);
         // post
         Task<ConversationDto> CreateConversationAsync(List<string> userIds);
+        //Task<ConversationDto> CreateGroupConversationAsync(CreateGroupConversationDto request);
         Task<MessageDto> SendMessageAsync(Guid TextChatId, RequestSendMessageDto request);
         // Put
         Task<MessageDto> UpdateMessageAsync(MessageDto message);
