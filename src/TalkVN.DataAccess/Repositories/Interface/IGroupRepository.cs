@@ -6,5 +6,7 @@ namespace TalkVN.DataAccess.Repositories.Interface
     {
         Task<bool> IsGroupNameExistsAsync(string name);
         Task<Group> GetGroupByInvitationCode(string code);
+
+        Task<List<TextChat>> GetAllTextChatsByGroupIdAsync(Guid groupId);
     }
 }

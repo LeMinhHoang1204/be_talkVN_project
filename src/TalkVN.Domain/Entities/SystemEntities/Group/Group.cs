@@ -19,7 +19,8 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
         public UserApplication Creator { get; set; } // Navigation property
 
         public IEnumerable<TextChat> TextChats { get; set; } //1 group co nhieu textChat
-        public IEnumerable<UserGroupRole> UserGroupRoles { get; set; } //1 group co nhieu usergrouprole
+
+        public IEnumerable<UserGroup> UserGroups { get; set; } //1 group co nhieu usergroup
         public IEnumerable<GroupInvitation> GroupInvitations { get; set; } //1 group co nhieu group invitation
         public IEnumerable<JoinGroupRequest> JoinGroupRequests { get; set; } //1 group co nhieu joinGroupRequest
 
@@ -27,6 +28,5 @@ namespace TalkVN.Domain.Entities.SystemEntities.Group
 
         public IEnumerable<GroupNotifications> GroupNotifications { get; set; } //1 group co nhieu tag
 
-        public IEnumerable<VoiceChatParticipant> VoiceChatParticipants { get; set; } //1 group co nhieu notification receiver
     }
 }

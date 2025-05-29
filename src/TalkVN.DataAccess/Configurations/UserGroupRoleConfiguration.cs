@@ -11,18 +11,11 @@ namespace TalkVN.DataAccess.Configurations
             //primary key
             modelBuilder.HasKey(ugr => ugr.Id);
 
-            // Configure relationship with User
+            // Configure relationship with UserGroup
             modelBuilder
-                .HasOne(ugr => ugr.User)
-                .WithMany()
-                .HasForeignKey(ugr => ugr.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure relationship with Group
-            modelBuilder
-                .HasOne(ugr => ugr.Group)
+                .HasOne(ugr => ugr.UserGroup)
                 .WithMany(g => g.UserGroupRoles)
-                .HasForeignKey(ugr => ugr.GroupId)
+                .HasForeignKey(ugr => ugr.UserGroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationship with Role
