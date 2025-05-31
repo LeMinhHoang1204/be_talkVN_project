@@ -6,6 +6,6 @@
 
         public IEnumerable<RolePermission> RolePermissions { get; set; }
 
-        //public IEnumerable<OverridePermission> OverridePermissions { get; set; }
+        // public IEnumerable<OverridePermission> OverridePermissions { get; set; }
     }
 }

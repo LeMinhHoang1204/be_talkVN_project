@@ -68,7 +68,6 @@ namespace TalkVN.DataAccess.Data
                 foreach (var user in adminUsers)
                 {
                     await userManager.CreateAsync(user, "Password123!");
-
                     await userManager.AddToRoleAsync(user, UserRoles.Admin.ToString());
                 }
             }

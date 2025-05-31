@@ -1,6 +1,9 @@
 namespace TalkVN.Domain.Enums;
 
-public class Role
+public enum Role
 {
-    
+    GroupOwner,
+    Moderator,
+    Member,
+    SystemAdmin,
 }

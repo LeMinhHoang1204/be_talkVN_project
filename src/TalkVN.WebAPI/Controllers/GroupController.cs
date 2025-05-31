@@ -23,16 +23,19 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<GroupController> _logger;
+        private readonly IPermissionService _permissionService;
 
         public GroupController(IGroupService groupService,
             IGroupInvitationService groupInvitationService,
             IClaimService claimService,
-            ILogger<GroupController> logger)
+            ILogger<GroupController> logger,
+            IPermissionService permissionService)
         {
             _groupService = groupService;
             _groupInvitationService = groupInvitationService;
             _claimService = claimService;
             _logger = logger;
+            _permissionService = permissionService;
         }
 
         //get user's created groups
@@ -53,14 +56,15 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
         }
 
+        // Create a new group
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<GroupDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateGroupAsync([FromBody]RequestCreateGroupDto request)
         {
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
             try
             {
                 var result = await _groupService.CreateGroupAsync(request);
@@ -83,6 +87,17 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
         {
             var userId = _claimService.GetUserId();
+            bool canDeleteAnyMessage = await _permissionService.HasPermissionAsync(
+                userId,
+                TalkVN.Domain.Enums.Permissions.INVITE_TO_JOINED_GROUP.ToString(),
+                groupId
+            );
+
+            if (!canDeleteAnyMessage)
+            {
+                return Unauthorized(new { message = "You do not have permission to invite members to this group." });
+            }
+
             var result = await _groupInvitationService.CreateGroupInvitationAsync(groupId, userId);
             return Ok(ApiResult<GroupInvitationDto>.Success(result));
         }
@@ -105,6 +120,7 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
         }
 
+        // Approve join group request
         [HttpPost]
         [Route("approve-join-request")]
         public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)

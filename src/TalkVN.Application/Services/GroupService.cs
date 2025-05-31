@@ -148,6 +148,15 @@ namespace TalkVN.Application.Services
             var groupDto = _mapper.Map<GroupDto>(group);
             groupDto.Creator = _mapper.Map<UserDto>(await _userRepository.GetFirstOrDefaultAsync(x => x.Id == userId));
 
+            // add role for the owner
+            var userGroupRole = new UserGroupRole
+            {
+                UserGroupId = member.Id,
+                RoleId = ownerRole.Id,
+                Id = Guid.NewGuid()
+            };
+            await _userGroupRoleRepository.AddAsync(userGroupRole);
+
             //create default textChats
             var textChat = new TextChat
             {
@@ -175,7 +184,7 @@ namespace TalkVN.Application.Services
             var textchatParticipant = new TextChatParticipant
             {
                 UserId = userId,
-                TextChatId = textChat.Id,
+                TextChatId = groupChat.Id,
                 Status = GroupStatus.Active
             };
             await this._textChatParticipantRepository.AddAsync(textchatParticipant);
