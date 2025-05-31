@@ -182,7 +182,7 @@ namespace TalkVN.Application.Services
             var groupchatParticipant = new TextChatParticipant
             {
                 UserId = userId,
-                TextChatId = textChat.Id,
+                TextChatId = groupChat.Id,
                 Status = GroupStatus.Active
             };
             await this._textChatParticipantRepository.AddAsync(groupchatParticipant);
@@ -262,7 +262,7 @@ namespace TalkVN.Application.Services
             request.UpdatedBy = ownerId;
             await _joinGroupRequestRepository.UpdateAsync(request);
 
-            // Tạo user group role
+            // Tạo user group
             var memberRole = await _roleManager.FindByNameAsync("Member");
             var newUserGroup = new UserGroup
             {
@@ -292,17 +292,33 @@ namespace TalkVN.Application.Services
         public async Task AddUserToChatsAsync(Guid groupId, string userId)
         {
             List<TextChat> textChats = await _groupRepository.GetAllTextChatsByGroupIdAsync(groupId);
-            for(int i = 0; i < textChats.Count; i++)
+
+            if(textChats.Count == 0)
             {
-                var textChatParticipant = new TextChatParticipant
-                {
-                    UserId = userId,
-                    TextChatId = textChats[i].Id,
-                    Status = GroupStatus.Active
-                };
-                await this._textChatParticipantRepository.AddAsync(textChatParticipant);
-                //TODO: grant role/permission for user in these chats
+                _logger.LogWarning("No text chats found for group {GroupId}", groupId);
+                return;
             }
+
+            var participants = textChats.Select(chat => new TextChatParticipant
+            {
+                UserId = userId,
+                TextChatId = chat.Id,
+                Status = GroupStatus.Active
+            }).ToList();
+            //TODO: grant role/permission for user in these chats
+
+            await _textChatParticipantRepository.AddRangeAsync(participants); //bulk insert
+
+            // for(int i = 0; i < textChats.Count; i++)
+            // {
+            //     var textChatParticipant = new TextChatParticipant
+            //     {
+            //         UserId = userId,
+            //         TextChatId = textChats[i].Id,
+            //         Status = GroupStatus.Active
+            //     };
+            //     await this._textChatParticipantRepository.AddAsync(textChatParticipant)
+            // }
             _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
         }
     }
