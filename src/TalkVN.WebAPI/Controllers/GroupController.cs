@@ -22,17 +22,22 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IGroupInvitationService _groupInvitationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
         private readonly ILogger<GroupController> _logger;
 
         public GroupController(IGroupService groupService,
             IGroupInvitationService groupInvitationService,
             IClaimService claimService,
-            ILogger<GroupController> logger)
+            ILogger<GroupController> logger,
+            IEmailService emailService,
+            IUserRepository userRepository)
         {
             _groupService = groupService;
             _groupInvitationService = groupInvitationService;
+            _userRepository = userRepository;
             _claimService = claimService;
             _logger = logger;
+            _emailService = emailService;
         }
 
         //get user's created groups
@@ -112,5 +117,31 @@ namespace TalkVN.WebAPI.Controllers
             await _groupService.ApproveJoinGroupRequestAsync(dto);
             return Ok(ApiResult<string>.Success("Approved successfully"));
         }
+
+        [HttpPost]
+        [Route("send-invite")]
+        public async Task<IActionResult> SendEmailAsync([FromBody] SendGroupInviteDto request)
+        {
+            if(request == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+            var user = await _userRepository.GetFirstAsync(tar => tar.Id == request.TargetUserId);
+            if (string.IsNullOrEmpty(user.Email) || user == null)
+                return NotFound("User not found or email missing");
+            var invite = await _groupInvitationService.CreateGroupInvitationAsync(request.GroupId, request.SenderUserId);
+
+            var inviter = await _userRepository.GetFirstAsync(u => u.Id == request.SenderUserId);
+            var inviterName = inviter?.UserName ?? "Someone";
+
+            var emailSubject = $"You've been invited to join a group!";
+            Console.WriteLine($"Sending email to: {user.Email}");
+            var emailBody = $"Hi {user.UserName},\n\n" +
+                            $"{inviterName} has invited to join the group.\n\n" +
+                            $"Click the link to join: {invite.InvitationUrl}\n\n" +
+                            $"This invitation expires on: {invite.ExpirationDate:yyyy-MM-dd}";
+            //TODO: edit send mail controller
+            await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
+            return Ok(ApiResult<string>.Success($"Invitation sent successfully to {user.Email}"));
+        }
+
     }
 }
