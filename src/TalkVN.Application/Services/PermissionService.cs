@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 
 using TalkVN.Application.Services.Interface;
 using TalkVN.DataAccess.Data;
+using TalkVN.Domain.Entities.SystemEntities.Permissions;
 using TalkVN.Domain.Identity;
 
 namespace TalkVN.Application.Services;
@@ -126,5 +127,33 @@ public class PermissionService : IPermissionService // Hoặc logic tương tự
 
         _logger.LogInformation("User '{UserId}' KHÔNG có quyền '{PermissionName}' dựa trên vai trò.", userId, permissionName);
         return false;
+    }
+
+    public async Task OverridePermissionAsync(string userId, Guid permissionId, Guid textChatId, bool isAllowed)
+    {
+        var existingOverride = await _context.OverridePermissions
+            .FirstOrDefaultAsync(op => op.UserId == userId &&
+                                        op.PermissionId == permissionId &&
+                                        op.TextChatId == textChatId);
+
+        if (existingOverride != null)
+        {
+            existingOverride.IsAllowed = isAllowed;
+            existingOverride.IsDeleted = false; // Đảm bảo bản ghi không bị đánh dấu xóa
+            _context.OverridePermissions.Update(existingOverride);
+        }
+        else
+        {
+            var newOverride = new OverridePermission
+            {
+                UserId = userId,
+                PermissionId = permissionId,
+                TextChatId = textChatId,
+                IsAllowed = isAllowed,
+            };
+            await _context.OverridePermissions.AddAsync(newOverride);
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

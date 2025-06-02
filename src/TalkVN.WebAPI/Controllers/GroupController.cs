@@ -6,8 +6,10 @@ using TalkVN.Application.Services.Interface;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using TalkVN.Application.Models.Dtos.Group;
+using TalkVN.DataAccess.Data;
 using TalkVN.DataAccess.Repositories.Interface;
 
 
@@ -24,18 +26,23 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ILogger<GroupController> _logger;
         private readonly IPermissionService _permissionService;
+        private readonly ApplicationDbContext _context;
+
 
         public GroupController(IGroupService groupService,
             IGroupInvitationService groupInvitationService,
             IClaimService claimService,
             ILogger<GroupController> logger,
-            IPermissionService permissionService)
+            IPermissionService permissionService,
+            ApplicationDbContext context
+            )
         {
             _groupService = groupService;
             _groupInvitationService = groupInvitationService;
             _claimService = claimService;
             _logger = logger;
             _permissionService = permissionService;
+            _context = context;
         }
 
         //get user's created groups
@@ -125,8 +132,88 @@ namespace TalkVN.WebAPI.Controllers
         [Route("approve-join-request")]
         public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
         {
+            var userId = _claimService.GetUserId();
+            var groupId = await _context.JoinGroupRequests
+                .Where(r => r.Id == dto.JoinGroupRequestId)
+                .Select(r => r.GroupId)
+                .FirstOrDefaultAsync();
+
+            if (groupId == default)
+                return NotFound(new { message = "JoinGroupRequest not found." });
+
+            bool canApproveRequest = await _permissionService.HasPermissionAsync(
+                userId,
+                TalkVN.Domain.Enums.Permissions.ACCEPT_REQUEST_TO_JOIN_GROUP.ToString(),
+                groupId
+            );
+
+            if (!canApproveRequest)
+            {
+                return Unauthorized(new { message = "You do not have permission to approve join group requests." });
+            }
+
             await _groupService.ApproveJoinGroupRequestAsync(dto);
             return Ok(ApiResult<string>.Success("Approved successfully"));
+        }
+
+        // Update User Role in Group
+        [HttpPost]
+        [Route("update-user-role")]
+        public async Task<IActionResult> UpdateUserRoleInGroupAsync([FromBody] UpdateUserRoleInGroupDto dto)
+        {
+            var userId = _claimService.GetUserId();
+            bool canUpdateRole = await _permissionService.HasPermissionAsync(
+                userId,
+                TalkVN.Domain.Enums.Permissions.UPDATE_USER_ROLE_IN_OWN_GROUP.ToString(),
+                dto.GroupId
+            );
+
+            if (!canUpdateRole)
+            {
+                return Unauthorized(new { message = "You do not have permission to update user role in this group." });
+            }
+
+            await _groupService.UpdateUserRoleInGroupAsync(dto);
+            return Ok(ApiResult<string>.Success("User role updated successfully"));
+        }
+
+        // Add OverridePermission
+        [HttpPost]
+        [Route("override-permission")]
+        [ProducesResponseType(typeof(ApiResult<string>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> AddOverridePermissionAsync([FromBody] OverridePermissionDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _claimService.GetUserId();
+
+            var groupId = await _context.TextChats
+                .Where(tc => tc.Id == dto.TextChatId) // Assuming dto.ChannelId is the TextChatId
+                .Select(tc => tc.GroupId) // Assuming TextChats has a GroupId property
+                .FirstOrDefaultAsync();
+
+            if (groupId == null)
+            {
+                return NotFound(new { message = "Group not found." });
+            }
+
+            // Check if the user has permission to override permissions
+            bool canOverridePermission = await _permissionService.HasPermissionAsync(
+                userId,
+                TalkVN.Domain.Enums.Permissions.OVERRIDE_PERMISSION_IN_GROUP.ToString(),
+                groupId
+            );
+
+            if (!canOverridePermission)
+            {
+                return Unauthorized(new { message = "You do not have permission to override permissions in this group." });
+            }
+
+            // Add or update the override permission
+            await _permissionService.OverridePermissionAsync(dto.UserId, dto.PermissionId, dto.TextChatId, dto.IsAllowed);
+
+            return Ok(ApiResult<string>.Success("Override permission added/updated successfully"));
         }
     }
 }

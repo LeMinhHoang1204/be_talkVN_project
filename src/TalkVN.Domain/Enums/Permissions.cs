@@ -31,6 +31,9 @@ namespace TalkVN.Domain.Enums
         // Các quyền này thường áp dụng cho các nhóm mà Moderator điều phối (_JOINED_GROUP)
         //======================================================================
 
+        // Quản lý nhóm
+        OVERRIDE_PERMISSION_IN_GROUP, // Ghi đè quyền trong nhóm đã tham gia
+
         // Quản lý thành viên trong nhóm (JOINED_GROUP)
         BAN_USER_FROM_JOINED_GROUP,
         UNBAN_USER_FROM_JOINED_GROUP,
@@ -75,6 +78,7 @@ namespace TalkVN.Domain.Enums
         // Quản lý thành viên trong nhóm (OWN_GROUP)
         BAN_USER_FROM_OWN_GROUP,
         UNBAN_USER_FROM_OWN_GROUP,
+        UPDATE_USER_ROLE_IN_OWN_GROUP, // Cập nhật vai trò của người dùng trong nhóm
 
         // Tạo và quản lý kênh trong nhóm (OWN_GROUP)
         CREATE_TEXT_CHANNEL_IN_GROUP,

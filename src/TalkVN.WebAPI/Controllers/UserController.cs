@@ -8,6 +8,8 @@ using TalkVN.Application.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using TalkVN.Application.Helpers;
+using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Services.Caching;
 
 namespace TalkVN.WebAPI.Controllers
@@ -20,11 +22,13 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
         private readonly ICachingService _cacheService;
-        public UserController(IUserService userService, ILogger<UserController> logger, ICachingService cacheService)
+        private readonly IClaimService _claimService;
+        public UserController(IUserService userService, ILogger<UserController> logger, ICachingService cacheService, IClaimService claimService)
         {
             _userService = userService;
             _logger = logger;
             _cacheService = cacheService;
+            _claimService = claimService;
         }
 
         [HttpPost("register")]
@@ -105,6 +109,34 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenDto refreshTokenDto)
         {
             return Ok(ApiResult<RefreshTokenDto>.Success(await _userService.RefreshTokenAsync(refreshTokenDto)));
+        }
+
+        [HttpPost("addUserGroupRole")]
+        [ProducesResponseType(typeof(ApiResult<bool>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> AddUserGroupRoleAsync([FromBody] UpdateUserRoleInGroupDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _claimService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
+            try
+            {
+                var result = await _userService.AddUserGroupRoleAsync(dto, userId);
+                return Ok(ApiResult<bool>.Success(result));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding user group role");
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

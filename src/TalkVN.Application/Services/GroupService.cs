@@ -74,6 +74,7 @@ namespace TalkVN.Application.Services
                 query => query.Include(g => g.Creator)
             );
 
+
             _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
             List<GroupDto> response = new();
             foreach (var group in paginationResponse.Items)
@@ -133,7 +134,7 @@ namespace TalkVN.Application.Services
             };
 
             await _groupRepository.AddAsync(group);
-            var ownerRole = await _roleManager.FindByNameAsync("Owner");
+            var ownerRole = await _roleManager.FindByNameAsync("GroupOwner");
             if (ownerRole == null)
                 throw new Exception("Role 'Owner' not found");
             //add owner to the group
@@ -313,6 +314,72 @@ namespace TalkVN.Application.Services
                 //TODO: grant role/permission for user in these chats
             }
             _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
+        }
+
+        public async Task UpdateUserRoleInGroupAsync(UpdateUserRoleInGroupDto dto)
+        {
+            var group = await _groupRepository.GetFirstOrDefaultAsync(x => x.Id == dto.GroupId);
+            if (group == null)
+            {
+                throw new NotFoundException("Group not found");
+            }
+
+            var UserGroup = await _userGroupRepository.GetFirstOrDefaultAsync(
+                x => x.GroupId == dto.GroupId && x.UserId == dto.UserId
+            );
+
+            if (UserGroup == null)
+            {
+                throw new NotFoundException("User group not found");
+            }
+
+            // Find the user group role
+            var userGroupRole =
+                await _userGroupRoleRepository.GetFirstOrDefaultAsync(x =>
+                    x.UserGroupId == UserGroup.Id
+                );
+
+            if (userGroupRole == null)
+            {
+                // create a new user group role if it does not exist
+
+                // get the role by name
+                var role = await _roleManager.FindByNameAsync("Member");
+
+                if (role == null)
+                {
+                    throw new NotFoundException("Role not found");
+                }
+
+                var newUserGroupRole = new UserGroupRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserGroupId = UserGroup.Id,
+                    RoleId = role.Id
+                };
+                await _userGroupRoleRepository.AddAsync(newUserGroupRole);
+                return;
+            }
+            // else update the role
+            // If the role is the same, no need to update
+            var updatedRole = await _roleManager.FindByIdAsync(dto.RoleId.ToString());
+
+            if (updatedRole == null)
+            {
+                throw new NotFoundException("Role not found");
+            }
+
+            if (userGroupRole.RoleId == updatedRole.Id)
+            {
+                // No update needed
+                _logger.LogInformation("User role in group {GroupId} for UserGroupId {UserGroupId} is already {RoleName}");
+                return;
+            }
+
+            // Update the role
+            userGroupRole.RoleId = updatedRole.Id;
+            await _userGroupRoleRepository.UpdateAsync(userGroupRole);
+            _logger.LogInformation("User Group Role updated");
         }
     }
 }

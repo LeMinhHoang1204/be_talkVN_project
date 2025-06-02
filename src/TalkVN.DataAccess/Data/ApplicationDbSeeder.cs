@@ -135,7 +135,8 @@ public static class ApplicationDbSeeder
             Permissions.UNBAN_MEMBER_FROM_USING_CAMERA_IN_JOINED_GROUP, Permissions.MUTE_MEMBER_IN_JOINED_SPECIFIC_VIDEO_CHANNEL,
             Permissions.UNMUTE_MEMBER_IN_JOINED_SPECIFIC_VIDEO_CHANNEL, Permissions.TURN_OFF_VIDEO_MEMBER_IN_JOINED_SPECIFIC_VIDEO_CHANNEL,
             Permissions.BAN_MEMBER_FROM_USING_CAMERA_IN_JOINED_SPECIFIC_VIDEO_CHANNEL,
-            Permissions.UNBAN_MEMBER_FROM_USING_CAMERA_IN_JOINED_SPECIFIC_VIDEO_CHANNEL
+            Permissions.UNBAN_MEMBER_FROM_USING_CAMERA_IN_JOINED_SPECIFIC_VIDEO_CHANNEL,
+            Permissions.OVERRIDE_PERMISSION_IN_GROUP
         };
         await AssignPermissionsToRole(TalkVN.Domain.Enums.Role.Moderator.ToString(), moderatorPermissions);
 
@@ -151,7 +152,8 @@ public static class ApplicationDbSeeder
             Permissions.MUTE_MEMBER_IN_OWN_SPECIFIC_VIDEO_CHANNEL, Permissions.UNMUTE_MEMBER_IN_OWN_SPECIFIC_VIDEO_CHANNEL,
             Permissions.TURN_OFF_VIDEO_MEMBER_IN_OWN_SPECIFIC_VIDEO_CHANNEL,
             Permissions.BAN_MEMBER_FROM_USING_CAMERA_IN_OWN_SPECIFIC_VIDEO_CHANNEL,
-            Permissions.UNBAN_MEMBER_FROM_USING_CAMERA_IN_OWN_SPECIFIC_VIDEO_CHANNEL
+            Permissions.UNBAN_MEMBER_FROM_USING_CAMERA_IN_OWN_SPECIFIC_VIDEO_CHANNEL,
+            Permissions.UPDATE_USER_ROLE_IN_OWN_GROUP
         };
 
         await AssignPermissionsToRole(TalkVN.Domain.Enums.Role.GroupOwner.ToString(), groupOwnerPermissions);

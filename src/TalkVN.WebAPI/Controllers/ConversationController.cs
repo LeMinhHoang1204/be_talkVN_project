@@ -8,7 +8,9 @@ using TalkVN.Application.Services.Interface;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
+using TalkVN.DataAccess.Data;
 using TalkVN.DataAccess.Repositories.Interface;
 
 namespace TalkVN.WebAPI.Controllers
@@ -22,12 +24,16 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IConversationService _conversationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
-        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService, IUserRepository userRepository)
+        private readonly IPermissionService _permissionService;
+        private readonly ApplicationDbContext _context;
+        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService, IUserRepository userRepository, IPermissionService permissionService, ApplicationDbContext context)
         {
             _logger = logger;
             _conversationService = conversationService;
             _claimService = claimService;
             _userRepository = userRepository;
+            _permissionService = permissionService;
+            _context = context;
         }
 
         [HttpGet]
@@ -94,11 +100,32 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<SearchConversationResponseDto>.Success(await _conversationService.GetConversationsByUserIdAsync(userIds, pagination)));
         }
 
+        // send message
         [HttpPost]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> SendMessageAsync(Guid conversationId, [FromBody] RequestSendMessageDto request)
         {
+
+            var userId = _claimService.GetUserId();
+
+            var groupId = await _context.TextChats
+                .Where(r => r.Id == conversationId)
+                .Select(r => r.GroupId)
+                .FirstOrDefaultAsync();
+
+            bool canSendMessageInGroup = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_TEXT_CHANNEL.ToString(), groupId);
+            if (!canSendMessageInGroup)
+            {
+                return Unauthorized(new { message = "You do not have permission to send messages in this group." });
+            }
+
+            bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
+            if (!canSendMessageInSpecificChannel)
+            {
+                return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
+            }
+
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
         }
         [HttpPut]

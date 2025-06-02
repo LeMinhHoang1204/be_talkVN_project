@@ -49,6 +49,7 @@ namespace TalkVN.Application
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IFollowService, FollowService>();
             // services.AddScoped<ITrainingModelService, TrainingModelService>();
+            services.AddScoped<IPermissionService, PermissionService>();
             return services;
         }
     }

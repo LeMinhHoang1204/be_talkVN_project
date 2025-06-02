@@ -1,3 +1,4 @@
+using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Models.Dtos.User;
 
 namespace TalkVN.Application.Services.Interface
@@ -9,5 +10,7 @@ namespace TalkVN.Application.Services.Interface
         Task<LoginResponseDto> LoginGoogleAsync();
         Task<RefreshTokenDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> LogoutAsync(Guid loginHistoryId);
+
+        Task<bool> AddUserGroupRoleAsync(UpdateUserRoleInGroupDto dto, string userId);
     }
 }
