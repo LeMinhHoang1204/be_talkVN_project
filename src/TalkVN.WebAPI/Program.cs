@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using TalkVN.Application.Config;
 using TalkVN.Domain.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +25,8 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 DotNetEnv.Env.Load();
 builder.Configuration
     .AddEnvironmentVariables();
+builder.Services.Configure<SMTPSettings>(builder.Configuration.GetSection("SMTP"));
+
 
 builder.Services.AddAuthentication(options =>
 {

@@ -42,6 +42,8 @@ namespace TalkVN.DataAccess.Data
 
         public DbSet<UserGroupRole> UserGroupRoles { get; set; }
 
+        public DbSet<UserGroup> UserGroups { get; set; }
+
         public DbSet<MeetingSchedule> MeetingSchedules { get; set; }
 
         public DbSet<Permission> Permissions { get; set; }

@@ -26,6 +26,7 @@ namespace TalkVN.DataAccess
             .AddScoped<IGroupRepository, GroupRepository>()
             .AddScoped<IUserInteractionRepository, UserInteractionRepository>()
             .AddScoped<IUserFollowerRepository, UserFollowerRepository>();
+            //TODO: khai bao repo trong day
 
         }
 

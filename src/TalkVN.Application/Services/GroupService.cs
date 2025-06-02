@@ -87,7 +87,7 @@ namespace TalkVN.Application.Services
         }
 
 
-        public async Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId)
+        public async Task<List<UserGroupDto>> GetMembersByGroupIdAsync(Guid groupId)
         {
             var userId = _claimService.GetUserId();
             if (userId == null)
@@ -98,12 +98,12 @@ namespace TalkVN.Application.Services
                 x => x.GroupId == groupId,
                 query => query.Include(x => x.User)
             );
-            List<UserGroupRoleDto> response = new();
+            List<UserGroupDto> response = new();
             foreach (var member in members)
             {
-                var userGroupRoleDto = _mapper.Map<UserGroupRoleDto>(member);
-                userGroupRoleDto.User = _mapper.Map<UserDto>(member.User);
-                response.Add(userGroupRoleDto);
+                var userGroupDto = _mapper.Map<UserGroupDto>(member);
+                userGroupDto.User = _mapper.Map<UserDto>(member.User);
+                response.Add(userGroupDto);
             }
             return response;
         }
@@ -185,7 +185,7 @@ namespace TalkVN.Application.Services
             var textchatParticipant = new TextChatParticipant
             {
                 UserId = userId,
-                TextChatId = groupChat.Id,
+                TextChatId = textChat.Id,
                 Status = GroupStatus.Active
             };
             await this._textChatParticipantRepository.AddAsync(textchatParticipant);
