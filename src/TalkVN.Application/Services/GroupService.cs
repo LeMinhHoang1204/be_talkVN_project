@@ -419,5 +419,56 @@ namespace TalkVN.Application.Services
             await _userGroupRoleRepository.UpdateAsync(userGroupRole);
             _logger.LogInformation("User Group Role updated");
         }
+
+        public async Task RejectJoinGroupRequestAsync(RequestActionDto dto)
+        {
+            var ownerId = _claimService.GetUserId();
+            var request = await _joinGroupRequestRepository
+                .GetFirstOrDefaultAsync(
+                    x => x.Id == dto.JoinGroupRequestId,
+                    x => x.Include(x => x.Group)
+                        .Include(x => x.Invitation));
+            if (request == null)
+                throw new NotFoundException("Join request not found");
+
+            if (request.Group.CreatorId != ownerId)
+                throw new UnauthorizedAccessException("Only group owner can reject requests");
+
+            // Cập nhật trạng thái yêu cầu
+            request.Status = JoinRequestStatus.Rejected.ToString();
+            request.UpdatedOn = DateTime.UtcNow;
+            request.UpdatedBy = ownerId;
+            _joinGroupRequestRepository.UpdateAsync(request);
+            _logger.LogInformation("User {UserId} rejected join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
+        }
+
+        public async Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query)
+        {
+            var userId = _claimService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+            _logger.LogInformation("GetUserJoinedGroupsAsync started for UserId: {UserId}", userId);
+
+            var paginationResponse = await _groupRepository.GetAllAsync(
+                g => g.UserGroups.Any(ug => ug.UserId == userId && ug.Status == GroupStatus.Active),
+                g => g.OrderByDescending(x => x.UpdatedOn),
+                query.PageIndex,
+                query.PageSize,
+                query => query.Include(g => g.Creator)
+            );
+
+            _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
+            List<GroupDto> response = new();
+            foreach (var group in paginationResponse.Items)
+            {
+                var groupDto = _mapper.Map<GroupDto>(group);
+                groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
+                response.Add(groupDto);
+            }
+
+            return response;
+        }
     }
 }
