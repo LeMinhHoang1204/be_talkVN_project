@@ -62,6 +62,14 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<List<GroupDto>>.Success(await _groupService.GetAllGroupsAsync(pagination)));
         }
 
+        [HttpGet]
+        [Route("get-all-text-chats")]
+        public async Task<IActionResult> GetAllTextChatsByGroupIdAsync(Guid groupId, [FromQuery] PaginationFilter pagination)
+        {
+            var textChats = await _groupService.GetAllTextChatsByGroupIdAsync(groupId, pagination);
+            return Ok(ApiResult<List<TextChatDto>>.Success(textChats));
+        }
+
         //get group's members
         [HttpGet]
         [Route("get-members")]

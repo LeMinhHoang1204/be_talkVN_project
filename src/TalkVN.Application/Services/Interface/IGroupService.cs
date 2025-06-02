@@ -1,4 +1,5 @@
 ﻿using TalkVN.Application.Models;
+using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Models.Dtos.User;
 
@@ -12,6 +13,8 @@ namespace TalkVN.Application.Services.Interface
 
         Task<List<UserGroupDto>> GetMembersByGroupIdAsync(Guid groupId);
         Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code);
+
+        Task<List<TextChatDto>> GetAllTextChatsByGroupIdAsync(Guid groupId, PaginationFilter query);
 
         Task<List<UserDto>> GetUsersByUsernamesAsync(List<string> usernames, PaginationFilter query);
 

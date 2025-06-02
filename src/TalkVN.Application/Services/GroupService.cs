@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using TalkVN.Application.Exceptions;
 using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
+using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Models.Dtos.User;
 using TalkVN.Application.Services.Interface;
@@ -24,6 +25,7 @@ namespace TalkVN.Application.Services
         private readonly IBaseRepository<UserGroup> _userGroupRepository;
         private readonly IBaseRepository<JoinGroupRequest> _joinGroupRequestRepository;
         private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
+        private readonly IBaseRepository<TextChat> _textChatRepository;
         private readonly IBaseRepository<GroupInvitation> _groupInvitationRepository;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
@@ -45,6 +47,7 @@ namespace TalkVN.Application.Services
             _groupRepository = groupRepository;
             _userGroupRepository = repositoryFactory.GetRepository<UserGroup>();
             _userGroupRoleRepository = repositoryFactory.GetRepository<UserGroupRole>();
+            _textChatRepository = repositoryFactory.GetRepository<TextChat>();
             _joinGroupRequestRepository = repositoryFactory.GetRepository<JoinGroupRequest>();
             _groupInvitationRepository = repositoryFactory.GetRepository<GroupInvitation>();
             _textChatParticipantRepository = repositoryFactory.GetRepository<TextChatParticipant>();
@@ -247,7 +250,22 @@ namespace TalkVN.Application.Services
         }
 
 
+        public async Task<List<TextChatDto>> GetAllTextChatsByGroupIdAsync(Guid groupId, PaginationFilter query)
+        {
+            var textChats = await _textChatRepository.GetAllAsync(
+                tc => tc.GroupId == groupId,
+                tc => tc.OrderByDescending(tc => tc.UpdatedOn),
+                query.PageIndex,
+                query.PageSize
+            );
 
+            if (textChats == null || !textChats.Items.Any())
+            {
+                throw new NotFoundException("No text chats found for this group");
+            }
+
+            return _mapper.Map<List<TextChatDto>>(textChats.Items);
+        }
 
 
 
@@ -375,7 +393,6 @@ namespace TalkVN.Application.Services
                 TextChatId = chat.Id,
                 Status = GroupStatus.Active
             }).ToList();
-            //TODO: grant role/permission for user in these chats
 
             await _textChatParticipantRepository.AddRangeAsync(participants); //bulk insert
             _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
