@@ -55,7 +55,7 @@ namespace TalkVN.WebAPI.Controllers
 
         //get user's created groups
         [HttpGet]
-        [Route("")]
+        [Route("get-user-created-groups")]
         [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllGroupsAsync([FromQuery] PaginationFilter pagination)
         {
