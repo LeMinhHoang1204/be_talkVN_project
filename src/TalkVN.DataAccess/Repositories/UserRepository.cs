@@ -8,6 +8,8 @@ using TalkVN.Domain.Identity;
 
 using Microsoft.EntityFrameworkCore.Query;
 
+using TalkVN.Domain.Common;
+
 namespace TalkVN.DataAccess.Repositories
 {
     public class UserRepository : IUserRepository
@@ -64,6 +66,33 @@ namespace TalkVN.DataAccess.Repositories
             query = sort(query);
 
             return await query.ToListAsync();
+        }
+
+        public async Task<PaginationResponse<UserApplication>> GetAllAsync(
+            Expression<Func<UserApplication, bool>> predicate,
+            Func<IQueryable<UserApplication>, IOrderedQueryable<UserApplication>> sort,
+            int pageIndex,
+            int pageSize)
+        {
+            var query = DbSet.Where(predicate);
+            if (sort != null)
+            {
+                query = sort(query);
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginationResponse<UserApplication>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
         }
 
         public async Task<UserApplication> UpdateAsync(UserApplication entity)

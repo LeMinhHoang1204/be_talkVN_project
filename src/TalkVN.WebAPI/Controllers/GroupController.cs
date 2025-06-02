@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using TalkVN.Application.Models.Dtos.Group;
+using TalkVN.Application.Models.Dtos.User;
 using TalkVN.DataAccess.Repositories.Interface;
 using TalkVN.Domain.Common;
 
@@ -41,6 +42,17 @@ namespace TalkVN.WebAPI.Controllers
             _emailService = emailService;
         }
 
+        [HttpGet]
+        [Route("get-joined-groups")]
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
+        {
+            var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
+            if (pagedGroups == null || !pagedGroups.Any())
+                return NotFound("No groups found for the user");
+            return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
+        }
+
         //get user's created groups
         [HttpGet]
         [Route("")]
@@ -57,6 +69,22 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
         {
             return Ok(ApiResult<List<UserGroupDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
+        }
+
+
+        [HttpGet("search-by-usernames")]
+        public async Task<IActionResult> GetUsersByUsernamesAsync([FromQuery] string usernames, [FromQuery] PaginationFilter pagination)
+        {
+            if (string.IsNullOrWhiteSpace(usernames))
+                return BadRequest("Usernames query is required.");
+
+            var usernameList = usernames
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            var pagedUsers = await _groupService.GetUsersByUsernamesAsync(usernameList, pagination);
+
+            return Ok(ApiResult<List<UserDto>>.Success(pagedUsers));
         }
 
         [HttpPost]
@@ -151,15 +179,5 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<string>.Success($"Invitation sent successfully to {user.Email}"));
         }
 
-        [HttpGet]
-        [Route("get-joined-groups")]
-        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
-        {
-            var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
-            if (pagedGroups == null || !pagedGroups.Any())
-                return NotFound("No groups found for the user");
-            return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
-        }
     }
 }

@@ -234,6 +234,23 @@ namespace TalkVN.Application.Services
             };
         }
 
+        public async Task<List<UserDto>> GetUsersByUsernamesAsync(List<string> usernames, PaginationFilter pagination)
+        {
+            var paginationResult = await _userRepository.GetAllAsync(
+                u => usernames.Contains(u.UserName),
+                u => u.OrderByDescending(x => x.DisplayName), // hoặc OrderByDescending nếu muốn
+                pagination.PageIndex,
+                pagination.PageSize
+            );
+
+            return _mapper.Map<List<UserDto>>(paginationResult.Items);
+        }
+
+
+
+
+
+
         public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
         {
             var userId = _claimService.GetUserId();
@@ -340,7 +357,6 @@ namespace TalkVN.Application.Services
             _joinGroupRequestRepository.UpdateAsync(request);
             _logger.LogInformation("User {UserId} rejected join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
         }
-
 
 
         public async Task AddUserToChatsAsync(Guid groupId, string userId)
