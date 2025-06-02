@@ -12,7 +12,5 @@ namespace TalkVN.Domain.Identity
        public IEnumerable<RolePermission> RolePermissions { get; set; } // Navigation property
 
        public IEnumerable<UserGroupRole> UserGroupRoles { get; set; } // Navigation property
-
-       public IEnumerable<UserChatRole> UserChatRoles { get; set; } // Navigation property
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TalkVN.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using TalkVN.DataAccess.Data;
 namespace TalkVN.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529154043_BigDatabaseUpdate")]
+    partial class BigDatabaseUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1031,7 +1034,7 @@ namespace TalkVN.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroup");
                 });
 
             modelBuilder.Entity("TalkVN.Domain.Entities.SystemEntities.Relationships.UserGroupRole", b =>

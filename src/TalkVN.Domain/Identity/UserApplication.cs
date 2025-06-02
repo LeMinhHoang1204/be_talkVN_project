@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 using TalkVN.Domain.Entities.ChatEntities;
 using TalkVN.Domain.Entities.SystemEntities.Group;
+using TalkVN.Domain.Entities.SystemEntities.Relationships;
 
 namespace TalkVN.Domain.Identity
 {
@@ -23,5 +24,7 @@ namespace TalkVN.Domain.Identity
         public IEnumerable<JoinGroupRequest> JoinGroupRequests { get; set; } // Navigation property
 
         public IEnumerable<Group> Groups { get; set; } // Navigation property
+
+        public IEnumerable<UserGroup> UserGroups { get; set; } // Navigation property
     }
 }

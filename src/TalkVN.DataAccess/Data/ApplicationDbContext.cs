@@ -42,7 +42,7 @@ namespace TalkVN.DataAccess.Data
 
         public DbSet<UserGroupRole> UserGroupRoles { get; set; }
 
-        public DbSet<UserChatRole> UserChatRoles { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
 
         public DbSet<MeetingSchedule> MeetingSchedules { get; set; }
 
@@ -52,19 +52,13 @@ namespace TalkVN.DataAccess.Data
 
         public DbSet<RolePermission> RolePermissions { get; set; }
 
-        public DbSet<TextChatPermission> TextChatPermissions { get; set; }
-
-        public DbSet<VoiceChatPermission> VoiceChatPermissions { get; set; }
+       // public DbSet<TextChatPermission> TextChatPermissions { get; set; }
 
         public DbSet<GroupNotifications> GroupNotifications { get; set; }
 
         public DbSet<NotificationReceivers> NotificationReceivers { get; set; }
 
-        //public DbSet<OverridePermission> OverridePermissions { get; set; }
-
-        public DbSet<VoiceChat> VoiceChats { get; set; }
-
-        public DbSet<VoiceChatParticipant> VoiceChatParticipants { get; set; }
+        public DbSet<OverridePermission> OverridePermissions { get; set; }
 
         public DbSet<GroupInvitation> GroupInvitations { get; set; }
 

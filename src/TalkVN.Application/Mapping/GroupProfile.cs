@@ -12,5 +12,6 @@ public class GroupProfile : Profile
         CreateMap<TalkVN.Domain.Entities.SystemEntities.Group.Group, GroupDto>();
         CreateMap<UserGroupRole, UserGroupRoleDto>();
         CreateMap<GroupInvitation, GroupInvitationDto>();
+        CreateMap<UserGroup, UserGroupDto>();
     }
 }

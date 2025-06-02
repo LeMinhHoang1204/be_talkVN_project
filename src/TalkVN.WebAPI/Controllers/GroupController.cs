@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using TalkVN.Application.Models.Dtos.Group;
+using TalkVN.Application.Models.Dtos.User;
 using TalkVN.DataAccess.Repositories.Interface;
+using TalkVN.Domain.Common;
 
 
 namespace TalkVN.WebAPI.Controllers
@@ -22,22 +24,38 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IGroupInvitationService _groupInvitationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
         private readonly ILogger<GroupController> _logger;
 
         public GroupController(IGroupService groupService,
             IGroupInvitationService groupInvitationService,
             IClaimService claimService,
-            ILogger<GroupController> logger)
+            ILogger<GroupController> logger,
+            IEmailService emailService,
+            IUserRepository userRepository)
         {
             _groupService = groupService;
             _groupInvitationService = groupInvitationService;
+            _userRepository = userRepository;
             _claimService = claimService;
             _logger = logger;
+            _emailService = emailService;
+        }
+
+        [HttpGet]
+        [Route("get-joined-groups")]
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
+        {
+            var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
+            if (pagedGroups == null || !pagedGroups.Any())
+                return NotFound("No groups found for the user");
+            return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
         }
 
         //get user's created groups
         [HttpGet]
-        [Route("")]
+        [Route("get-user-created-groups")]
         [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllGroupsAsync([FromQuery] PaginationFilter pagination)
         {
@@ -46,11 +64,27 @@ namespace TalkVN.WebAPI.Controllers
 
         //get group's members
         [HttpGet]
-        [Route("{groupId}/members")]
-        [ProducesResponseType(typeof(ApiResult<List<UserGroupRoleDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        [Route("get-members")]
+        [ProducesResponseType(typeof(ApiResult<List<UserGroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
         {
-            return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
+            return Ok(ApiResult<List<UserGroupDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
+        }
+
+
+        [HttpGet("search-by-usernames")]
+        public async Task<IActionResult> GetUsersByUsernamesAsync([FromQuery] string usernames, [FromQuery] PaginationFilter pagination)
+        {
+            if (string.IsNullOrWhiteSpace(usernames))
+                return BadRequest("Usernames query is required.");
+
+            var usernameList = usernames
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            var pagedUsers = await _groupService.GetUsersByUsernamesAsync(usernameList, pagination);
+
+            return Ok(ApiResult<List<UserDto>>.Success(pagedUsers));
         }
 
         [HttpPost]
@@ -78,7 +112,7 @@ namespace TalkVN.WebAPI.Controllers
 
         //create invitation
         [HttpPost]
-        [Route("create-invitation/{groupId}")]
+        [Route("create-invitation")]
         [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
         {
@@ -105,12 +139,45 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("approve-join-request")]
         public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
         {
             await _groupService.ApproveJoinGroupRequestAsync(dto);
             return Ok(ApiResult<string>.Success("Approved successfully"));
         }
+
+        [HttpPut]
+        [Route("reject-join-request")]
+        public async Task<IActionResult> RejectJoinGroupRequestAsync([FromBody] RequestActionDto dto)
+        {
+            await _groupService.RejectJoinGroupRequestAsync(dto);
+            return Ok(ApiResult<string>.Success("Rejected successfully"));
+        }
+
+        [HttpPost]
+        [Route("send-invite")]
+        public async Task<IActionResult> SendEmailAsync([FromBody] SendGroupInviteDto request)
+        {
+            if(request == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+            var user = await _userRepository.GetFirstAsync(tar => tar.Id == request.TargetUserId);
+            if (string.IsNullOrEmpty(user.Email) || user == null)
+                return NotFound("User not found or email missing");
+            var invite = await _groupInvitationService.CreateGroupInvitationAsync(request.GroupId, request.SenderUserId);
+
+            var inviter = await _userRepository.GetFirstAsync(u => u.Id == request.SenderUserId);
+            var inviterName = inviter?.UserName ?? "Someone";
+
+            var emailSubject = $"You've been invited to join a group!";
+            Console.WriteLine($"Sending email to: {user.Email}");
+            var emailBody = $"Hi {user.UserName},\n\n" +
+                            $"{inviterName} has invited to join the group.\n\n" +
+                            $"Click the link to join: {invite.InvitationUrl}\n\n" +
+                            $"This invitation expires on: {invite.ExpirationDate:yyyy-MM-dd}";
+            await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
+            return Ok(ApiResult<string>.Success($"Invitation sent successfully to {user.Email}"));
+        }
+
     }
 }

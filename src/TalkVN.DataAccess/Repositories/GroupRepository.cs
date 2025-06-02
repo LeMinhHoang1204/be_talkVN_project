@@ -1,6 +1,8 @@
 ﻿using TalkVN.DataAccess.Data;
 using TalkVN.DataAccess.Repositories.Interface;
 using TalkVN.Domain.Entities.SystemEntities.Group;
+using TalkVN.Domain.Entities.SystemEntities.Relationships;
+using TalkVN.Domain.Enums;
 
 namespace TalkVN.DataAccess.Repositories
 {
@@ -23,6 +25,21 @@ namespace TalkVN.DataAccess.Repositories
             if (group == null)
                 throw new Exception("Invalid link or expired invitation code");
             return group.Group;
+        }
+
+        public async Task<List<TextChat>> GetAllTextChatsByGroupIdAsync(Guid groupId)
+        {
+            return await Context.TextChats
+                .Where(tc => tc.GroupId == groupId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Group>> GetUserJoinedGroupsAsync(string userId)
+        {
+            return await Context.UserGroups
+                .Where(ug => ug.UserId == userId && ug.Status == GroupStatus.Active)
+                .Select(ug => ug.Group)
+                .ToListAsync();
         }
 
     }

@@ -34,6 +34,7 @@ namespace TalkVN.Application.Services
             var existingCode = await _groupInviteRepo.GetUserInvitaionsByGroupId(groupId, userId);
             if (existingCode != null)
             {
+                //create invite link with existing code
                 return new GroupInvitationDto
                 {
                     InvitationCode = existingCode.InvitationCode,
@@ -63,6 +64,7 @@ namespace TalkVN.Application.Services
                 _logger.LogInformation("New invitation created - Code: {Code}, GroupId: {GroupId}, UserId: {UserId}",
                     code, groupId, userId);
 
+                //tra ve cho fe
                 return new GroupInvitationDto
                 {
                     Id = newInvite.Id,

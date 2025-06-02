@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\TalkVN.DataAccess\TalkVN.DataAccess.csproj" />
       <Compile Remove="MachineLearning\**\*.cs" />
-
   </ItemGroup>
 	
   <ItemGroup>
