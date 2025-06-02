@@ -6,7 +6,6 @@
 
         public string RoleId { get; set; }
 
-
         public UserGroup UserGroup { get; set; } // Navigation property
         public ApplicationRole Role { get; set; } // Navigation property
     }

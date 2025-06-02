@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.DataAccess.Repositories.Interface;
+using TalkVN.Domain.Common;
 
 
 namespace TalkVN.WebAPI.Controllers
@@ -51,11 +52,11 @@ namespace TalkVN.WebAPI.Controllers
 
         //get group's members
         [HttpGet]
-        [Route("{groupId}/members")]
-        [ProducesResponseType(typeof(ApiResult<List<UserGroupRoleDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        [Route("get-members")]
+        [ProducesResponseType(typeof(ApiResult<List<UserGroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetMembersByGroupIdAsync(Guid groupId)
         {
-            return Ok(ApiResult<List<UserGroupRoleDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
+            return Ok(ApiResult<List<UserGroupDto>>.Success(await _groupService.GetMembersByGroupIdAsync(groupId)));
         }
 
         [HttpPost]
@@ -138,10 +139,19 @@ namespace TalkVN.WebAPI.Controllers
                             $"{inviterName} has invited to join the group.\n\n" +
                             $"Click the link to join: {invite.InvitationUrl}\n\n" +
                             $"This invitation expires on: {invite.ExpirationDate:yyyy-MM-dd}";
-            //TODO: edit send mail controller
             await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
             return Ok(ApiResult<string>.Success($"Invitation sent successfully to {user.Email}"));
         }
 
+        [HttpGet]
+        [Route("get-joined-groups")]
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
+        {
+            var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
+            if (pagedGroups == null || !pagedGroups.Any())
+                return NotFound("No groups found for the user");
+            return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
+        }
     }
 }

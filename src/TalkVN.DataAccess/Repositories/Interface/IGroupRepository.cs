@@ -8,5 +8,6 @@ namespace TalkVN.DataAccess.Repositories.Interface
         Task<Group> GetGroupByInvitationCode(string code);
 
         Task<List<TextChat>> GetAllTextChatsByGroupIdAsync(Guid groupId);
+        Task<List<Group>> GetUserJoinedGroupsAsync(string userId);
     }
 }

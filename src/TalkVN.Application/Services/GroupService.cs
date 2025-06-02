@@ -86,7 +86,7 @@ namespace TalkVN.Application.Services
         }
 
 
-        public async Task<List<UserGroupRoleDto>> GetMembersByGroupIdAsync(Guid groupId)
+        public async Task<List<UserGroupDto>> GetMembersByGroupIdAsync(Guid groupId)
         {
             var userId = _claimService.GetUserId();
             if (userId == null)
@@ -97,12 +97,12 @@ namespace TalkVN.Application.Services
                 x => x.GroupId == groupId,
                 query => query.Include(x => x.User)
             );
-            List<UserGroupRoleDto> response = new();
+            List<UserGroupDto> response = new();
             foreach (var member in members)
             {
-                var userGroupRoleDto = _mapper.Map<UserGroupRoleDto>(member);
-                userGroupRoleDto.User = _mapper.Map<UserDto>(member.User);
-                response.Add(userGroupRoleDto);
+                var userGroupDto = _mapper.Map<UserGroupDto>(member);
+                userGroupDto.User = _mapper.Map<UserDto>(member.User);
+                response.Add(userGroupDto);
             }
             return response;
         }
@@ -308,18 +308,38 @@ namespace TalkVN.Application.Services
             //TODO: grant role/permission for user in these chats
 
             await _textChatParticipantRepository.AddRangeAsync(participants); //bulk insert
-
-            // for(int i = 0; i < textChats.Count; i++)
-            // {
-            //     var textChatParticipant = new TextChatParticipant
-            //     {
-            //         UserId = userId,
-            //         TextChatId = textChats[i].Id,
-            //         Status = GroupStatus.Active
-            //     };
-            //     await this._textChatParticipantRepository.AddAsync(textChatParticipant)
-            // }
             _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
         }
+
+        public async Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query)
+        {
+            var userId = _claimService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+            _logger.LogInformation("GetUserJoinedGroupsAsync started for UserId: {UserId}", userId);
+
+            var paginationResponse = await _groupRepository.GetAllAsync(
+                g => g.UserGroups.Any(ug => ug.UserId == userId && ug.Status == GroupStatus.Active),
+                g => g.OrderByDescending(x => x.UpdatedOn),
+                query.PageIndex,
+                query.PageSize,
+                query => query.Include(g => g.Creator)
+            );
+
+            _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
+            List<GroupDto> response = new();
+            foreach (var group in paginationResponse.Items)
+            {
+                var groupDto = _mapper.Map<GroupDto>(group);
+                groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
+                response.Add(groupDto);
+            }
+
+            return response;
+        }
+
     }
 }
+
