@@ -84,7 +84,7 @@ namespace TalkVN.WebAPI.Controllers
 
         //create invitation
         [HttpPost]
-        [Route("create-invitation/{groupId}")]
+        [Route("create-invitation")]
         [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
         {
@@ -111,12 +111,20 @@ namespace TalkVN.WebAPI.Controllers
             return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("approve-join-request")]
         public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
         {
             await _groupService.ApproveJoinGroupRequestAsync(dto);
             return Ok(ApiResult<string>.Success("Approved successfully"));
+        }
+
+        [HttpPut]
+        [Route("reject-join-request")]
+        public async Task<IActionResult> RejectJoinGroupRequestAsync([FromBody] RequestActionDto dto)
+        {
+            await _groupService.RejectJoinGroupRequestAsync(dto);
+            return Ok(ApiResult<string>.Success("Rejected successfully"));
         }
 
         [HttpPost]
