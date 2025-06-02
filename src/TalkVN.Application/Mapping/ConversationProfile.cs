@@ -10,6 +10,7 @@ namespace TalkVN.Application.Mapping
         {
             CreateMap<TextChat, ConversationDto>();
             CreateMap<TextChat, ConversationDetailDto>();
+            CreateMap<TextChat, TextChatDto>();
         }
     }
 }
