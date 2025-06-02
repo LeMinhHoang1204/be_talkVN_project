@@ -1,4 +1,5 @@
 ﻿using TalkVN.Application.Models;
+using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Group;
 using TalkVN.Application.Models.Dtos.User;
 
@@ -13,6 +14,8 @@ namespace TalkVN.Application.Services.Interface
         Task<List<UserGroupDto>> GetMembersByGroupIdAsync(Guid groupId);
         Task<GroupDto> GetGroupInfoByInvitationCodeAsync(string code);
 
+        Task<List<TextChatDto>> GetAllTextChatsByGroupIdAsync(Guid groupId, PaginationFilter query);
+
         Task<List<UserDto>> GetUsersByUsernamesAsync(List<string> usernames, PaginationFilter query);
 
         Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto dto);
@@ -21,5 +24,7 @@ namespace TalkVN.Application.Services.Interface
         Task RejectJoinGroupRequestAsync(RequestActionDto dto);
         Task AddUserToChatsAsync(Guid groupId, string userId);
         Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query);
+
+        Task UpdateUserRoleInGroupAsync(UpdateUserRoleInGroupDto dto);
     }
 }

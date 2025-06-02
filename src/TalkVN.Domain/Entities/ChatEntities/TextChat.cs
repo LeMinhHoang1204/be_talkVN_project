@@ -7,8 +7,6 @@ public class TextChat : BaseAuditedEntity
 {
     public string? Name { get; set; } // required
     public Guid? LastMessageId { get; set; } // Nullable to allow for no last message
-    //public string userId1 { get; set; }
-    //public string userId2 { get; set; }
 
     public Message? LastMessage { get; set; } // Navigation property
     public bool IsSeen { get; set; } // default false

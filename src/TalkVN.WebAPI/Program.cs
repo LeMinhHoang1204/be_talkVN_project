@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 
 using TalkVN.Application.Config;
 using TalkVN.Domain.Identity;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,13 +104,35 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 // Migrate Database
-using var scope = app.Services.CreateAsyncScope();
-await AutomatedMigration.MigrateAsync(scope.ServiceProvider);
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>(); // Lấy ILogger
+    try
+    {
+        logger.LogInformation("Attempting to migrate and seed database...");
 
-// Gọi seed sau khi migrate
-var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserApplication>>();
-var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-await DbContextSeed.SeedDatabaseAsync(userManager, roleManager);
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
+        var userManager = services.GetRequiredService<UserManager<UserApplication>>();
+
+        // 1. Áp dụng các migration đang chờ (nếu có)
+        await AutomatedMigration.MigrateAsync(scope.ServiceProvider);
+        logger.LogInformation("Database migration completed (if any pending).");
+
+        // 2. Chạy tất cả các hàm seeding
+        await DbContextSeed.SeedDatabaseAsync(userManager, roleManager);
+        await ApplicationDbSeeder.SeedAllAsync(context, roleManager, logger); // Truyền logger vào
+
+        logger.LogInformation("Database migrated and seeded successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "AN ERROR OCCURRED WHILE MIGRATING OR SEEDING THE DATABASE.");
+        // Bạn có thể muốn dừng ứng dụng ở đây nếu seeding là bắt buộc và thất bại
+        // throw;
+    }
+}
 
 app.UseHttpsRedirection();
 app.AddInfrastuctureApplication();
