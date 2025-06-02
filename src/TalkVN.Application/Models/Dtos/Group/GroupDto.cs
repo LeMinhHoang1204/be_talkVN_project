@@ -5,6 +5,7 @@ namespace TalkVN.Application.Models.Dtos.Group
 {
     public class GroupDto : BaseResponseDto
     {
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public bool IsPrivate { get; set; }
         public string? Avatar { get; set; }
