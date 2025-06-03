@@ -5,7 +5,6 @@ using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Message;
 using TalkVN.Application.Services.Interface;
-using TalkVN.Application.Models.Dtos.Permission;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -123,12 +122,13 @@ namespace TalkVN.WebAPI.Controllers
                     return Unauthorized(new { message = "You do not have permission to send messages in this group." });
                 }
 
-                bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
+                bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), groupId, conversationId);
                 if (!canSendMessageInSpecificChannel)
                 {
                     return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
                 }
             }
+
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
         }
 

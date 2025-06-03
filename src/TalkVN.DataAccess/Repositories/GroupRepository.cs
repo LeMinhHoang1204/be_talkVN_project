@@ -31,7 +31,6 @@ namespace TalkVN.DataAccess.Repositories
         {
             return await Context.TextChats
                 .Where(tc => tc.GroupId == groupId)
-                .Include(tc => tc.CreatedBy)
                 .ToListAsync();
         }
 

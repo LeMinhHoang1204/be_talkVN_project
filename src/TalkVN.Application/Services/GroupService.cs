@@ -8,6 +8,7 @@ using TalkVN.Application.Helpers;
 using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Group;
+using TalkVN.Application.Models.Dtos.Message;
 using TalkVN.Application.Models.Dtos.User;
 using TalkVN.Application.Services.Interface;
 using TalkVN.DataAccess.Repositories.Interface;
@@ -173,7 +174,7 @@ namespace TalkVN.Application.Services
                 UpdatedOn = DateTime.UtcNow
             };
             await this._conversationRepository.AddAsync(textChat);
-            var groupChat = new TextChat
+            var voiceChat = new TextChat
             {
                 Name = "General Call",
                 GroupId = group.Id,
@@ -183,7 +184,7 @@ namespace TalkVN.Application.Services
                 CreatedOn = DateTime.UtcNow,
                 UpdatedOn = DateTime.UtcNow
             };
-            await this._conversationRepository.AddAsync(groupChat);
+            await this._conversationRepository.AddAsync(voiceChat);
             //add owner to groupChats
             var textchatParticipant = new TextChatParticipant
             {
@@ -192,14 +193,13 @@ namespace TalkVN.Application.Services
                 Status = GroupStatus.Active
             };
             await this._textChatParticipantRepository.AddAsync(textchatParticipant);
-            var groupchatParticipant = new TextChatParticipant
+            var voicechatParticipant = new TextChatParticipant
             {
                 UserId = userId,
-                TextChatId = textChat.Id,
+                TextChatId = voiceChat.Id,
                 Status = GroupStatus.Active
             };
-            await this._textChatParticipantRepository.AddAsync(groupchatParticipant);
-            //TODO: add role for the owner in those chats
+            await this._textChatParticipantRepository.AddAsync(voicechatParticipant);
             return groupDto;
         }
 
@@ -236,17 +236,40 @@ namespace TalkVN.Application.Services
                 tc => tc.GroupId == groupId,
                 tc => tc.OrderByDescending(tc => tc.UpdatedOn),
                 query.PageIndex,
-                query.PageSize
+                query.PageSize,
+                query => query.Include(tc => tc.TextChatParticipants)
+                    .ThenInclude(tcp => tcp.User) // Include UserApplication
             );
+
 
             if (textChats == null || !textChats.Items.Any())
             {
                 throw new NotFoundException("No text chats found for this group");
             }
 
-            return _mapper.Map<List<TextChatDto>>(textChats.Items);
-        }
+            var response = textChats.Items.Select(tc => new TextChatDto
+            {
+                Id = tc.Id,
+                Name = tc.Name,
+                TextChatType = tc.TextChatType,
+                GroupId = tc.GroupId,
+                LastMessage = tc.LastMessage != null ? new MessageDto
+                {
+                    MessageText = tc.LastMessage.MessageText,
+                    UpdateOn = tc.LastMessage?.UpdatedOn ?? DateTime.MinValue,                    SenderId = tc.LastMessage.SenderId
+                } : null,
+                UserReceivers = tc.TextChatParticipants.Select(tcp => new UserDto
+                {
+                    Id = tcp.User.Id,
+                    DisplayName = tcp.User.DisplayName,
+                    AvatarUrl = tcp.User.AvatarUrl
+                }).ToList()
+            }).ToList();
 
+            return response;
+
+            // return _mapper.Map<List<TextChatDto>>(textChats.Items);
+        }
 
 
         public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
@@ -336,8 +359,9 @@ namespace TalkVN.Application.Services
 
         public async Task AddUserToChatsAsync(Guid groupId, string userId)
         {
+            Console.WriteLine($"Adding user {userId} to chats of group {groupId}");
             List<TextChat> textChats = await _groupRepository.GetAllTextChatsByGroupIdAsync(groupId);
-            for(int i = 0; i < textChats.Count; i++)
+            if (textChats.Count == 0)
             {
                 _logger.LogWarning("No text chats found for group {GroupId}", groupId);
                 return;

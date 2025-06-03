@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq.Expressions;
 
 using TalkVN.Domain.Common;
@@ -39,7 +40,7 @@ namespace TalkVN.DataAccess.Repositories.Interface
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
             int pageIndex,
             int pageSize,
-            IEnumerable<Expression<Func<TEntity, BaseEntity>>> includes);
+            IEnumerable <Expression<Func<TEntity, BaseEntity>>> includes);
 
         Task<PaginationResponse<TEntity>> GetAllAsync(
            Expression<Func<TEntity, bool>> predicate,
@@ -47,6 +48,14 @@ namespace TalkVN.DataAccess.Repositories.Interface
            int pageIndex,
            int pageSize,
            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includeQuery);
+
+        Task<PaginationResponse<TEntity>> GetAllAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
+            int pageIndex,
+            int pageSize,
+            params Func<IQueryable<TEntity>, IQueryable<TEntity>>[] includes);
+
 
         Task<TEntity> AddAsync(TEntity entity);
 
