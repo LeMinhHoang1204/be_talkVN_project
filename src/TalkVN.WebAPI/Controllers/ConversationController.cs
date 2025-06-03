@@ -106,7 +106,6 @@ namespace TalkVN.WebAPI.Controllers
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> SendMessageAsync(Guid conversationId, [FromBody] RequestSendMessageDto request)
         {
-
             var userId = _claimService.GetUserId();
 
             var groupId = await _context.TextChats
@@ -120,7 +119,7 @@ namespace TalkVN.WebAPI.Controllers
                 return Unauthorized(new { message = "You do not have permission to send messages in this group." });
             }
 
-            bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
+            bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), groupId,conversationId);
             if (!canSendMessageInSpecificChannel)
             {
                 return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
