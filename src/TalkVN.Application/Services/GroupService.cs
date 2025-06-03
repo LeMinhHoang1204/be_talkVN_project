@@ -268,7 +268,6 @@ namespace TalkVN.Application.Services
         }
 
 
-
         public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
         {
             var userId = _claimService.GetUserId();
