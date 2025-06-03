@@ -52,16 +52,16 @@ namespace TalkVN.WebAPI.Controllers
             _emailService = emailService;
         }
 
-        // [HttpGet]
-        // [Route("get-joined-groups")]
-        // [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
-        // public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
-        // {
-        //     var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
-        //     if (pagedGroups == null || !pagedGroups.Any())
-        //         return NotFound("No groups found for the user");
-        //     return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
-        // }
+        [HttpGet]
+        [Route("get-joined-groups")]
+        [ProducesResponseType(typeof(ApiResult<List<GroupDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
+        {
+            var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
+            if (pagedGroups == null || !pagedGroups.Any())
+                return NotFound("No groups found for the user");
+            return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
+        }
 
         //get user's created groups
         [HttpGet]
