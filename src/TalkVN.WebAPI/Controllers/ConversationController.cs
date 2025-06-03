@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TalkVN.Application.Models.Dtos.Permission;
 using TalkVN.DataAccess.Data;
 using TalkVN.DataAccess.Repositories.Interface;
 
