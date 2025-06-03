@@ -8,7 +8,9 @@ using TalkVN.Application.Services.Interface;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
+using TalkVN.DataAccess.Data;
 using TalkVN.DataAccess.Repositories.Interface;
 
 namespace TalkVN.WebAPI.Controllers
@@ -22,12 +24,16 @@ namespace TalkVN.WebAPI.Controllers
         private readonly IConversationService _conversationService;
         private readonly IClaimService _claimService;
         private readonly IUserRepository _userRepository;
-        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService, IUserRepository userRepository)
+        private readonly IPermissionService _permissionService;
+        private readonly ApplicationDbContext _context;
+        public ConversationController(ILogger<ConversationController> logger, IConversationService conversationService, IClaimService claimService, IUserRepository userRepository, IPermissionService permissionService, ApplicationDbContext context)
         {
             _logger = logger;
             _conversationService = conversationService;
             _claimService = claimService;
             _userRepository = userRepository;
+            _permissionService = permissionService;
+            _context = context;
         }
 
         [HttpGet]
@@ -41,7 +47,7 @@ namespace TalkVN.WebAPI.Controllers
         [HttpGet]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDetailDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> GetConversationsByIdAsync(Guid conversationId, [FromQuery] int messagePageIndex = 0, [FromQuery] int messagePageSize = 100)
+        public async Task<IActionResult> GetConversationsByIdAsync(Guid conversationId, [FromQuery] int messagePageIndex = 1, [FromQuery] int messagePageSize = 100)
         {
             return Ok(ApiResult<ConversationDetailDto>.Success(await _conversationService.GetConversationsByIdAsync(conversationId, messagePageIndex, messagePageSize)));
         }
@@ -49,24 +55,24 @@ namespace TalkVN.WebAPI.Controllers
         [HttpPost]
         [Route("")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> CreateConversationAsync([FromBody] List<string> userIds)
+        public async Task<IActionResult> CreateConversationAsync([FromBody] CreateConversationRequestDTO request)
         {
-            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(userIds)));
+            return Ok(ApiResult<ConversationDto>.Success(await _conversationService.CreateConversationAsync(request.UserIds)));
         }
+
         // search a conversation by username
-        [HttpGet]
+        [HttpPost]
         [Route("search")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
-        public async Task<IActionResult> SearchConversationAsync([FromQuery] List<string> Usernames, [FromQuery] PaginationFilter pagination)
+        public async Task<IActionResult> SearchConversationAsync([FromBody] SearchConversationRequest request, [FromQuery] PaginationFilter pagination)
         {
             // Nếu truyền username → tìm userId
             List<string> userIds = new();
             var creatorUserId = _claimService.GetUserId();
-            foreach (var username in Usernames)
+            foreach (var username in request.Usernames)
             {
                 if (string.IsNullOrWhiteSpace(username))
                     continue;
-
                 var user = await _userRepository.GetFirstOrDefaultAsync(x => x.UserName == username);
                 if (user == null)
                 {
@@ -75,7 +81,6 @@ namespace TalkVN.WebAPI.Controllers
                         new ApiResultError(ApiResultErrorCodes.NotFound, $"User '{username}' not found")
                     }));
                 }
-
                 if (creatorUserId == user.Id)
                 {
                     return BadRequest(ApiResult<string>.Failure(new[]
@@ -83,10 +88,8 @@ namespace TalkVN.WebAPI.Controllers
                         new ApiResultError(ApiResultErrorCodes.NotFound, "You cannot search yourself")
                     }));
                 }
-
                 userIds.Add(user.Id);
             }
-
             if (!userIds.Any())
             {
                 return BadRequest(ApiResult<string>.Failure(new[]
@@ -94,23 +97,35 @@ namespace TalkVN.WebAPI.Controllers
                     new ApiResultError(ApiResultErrorCodes.ModelValidation, "No valid usernames provided")
                 }));
             }
-
-            var conversations = await _conversationService.GetConversationsByUserIdAsync(userIds, pagination);
-
-            var response = new SearchConversationResponseDto
-            {
-                Conversations = conversations,
-                UserIds = userIds
-            };
-
-            return Ok(ApiResult<SearchConversationResponseDto>.Success(response));
+            return Ok(ApiResult<SearchConversationResponseDto>.Success(await _conversationService.GetConversationsByUserIdAsync(userIds, pagination)));
         }
 
+        // send message
         [HttpPost]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<MessageDto>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> SendMessageAsync(Guid conversationId, [FromBody] RequestSendMessageDto request)
         {
+
+            var userId = _claimService.GetUserId();
+
+            var groupId = await _context.TextChats
+                .Where(r => r.Id == conversationId)
+                .Select(r => r.GroupId)
+                .FirstOrDefaultAsync();
+
+            bool canSendMessageInGroup = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_TEXT_CHANNEL.ToString(), groupId);
+            if (!canSendMessageInGroup)
+            {
+                return Unauthorized(new { message = "You do not have permission to send messages in this group." });
+            }
+
+            bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
+            if (!canSendMessageInSpecificChannel)
+            {
+                return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
+            }
+
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
         }
         [HttpPut]

@@ -20,6 +20,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authentication.Google;
 
+using TalkVN.Application.Models.Dtos.Group;
+using TalkVN.Domain.Entities.SystemEntities.Relationships;
+
 namespace TalkVN.Application.Services
 {
     public class UserService : IUserService
@@ -33,6 +36,8 @@ namespace TalkVN.Application.Services
         private ITokenService _tokenService;
         private IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IBaseRepository<UserGroupRole> _userGroupRoleRepository;
+        private readonly IBaseRepository<UserGroup> _userGroupRepository;
 
         public UserService(ILogger<UserService> logger
             , IUserRepository userRepository
@@ -53,6 +58,8 @@ namespace TalkVN.Application.Services
             _mapper = mapper;
             _claimService = claimService;
             _httpContextAccessor = httpContextAccessor;
+            _userGroupRoleRepository = repositoryFactory.GetRepository<UserGroupRole>();
+            _userGroupRepository = repositoryFactory.GetRepository<UserGroup>();
         }
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
@@ -239,6 +246,53 @@ namespace TalkVN.Application.Services
             loginHistory.RefreshToken = refreshToken;
             loginHistory.RefreshTokenExpiryTime = DateTime.Now.Add(TimeSpan.FromDays(validDays));
             return refreshToken;
+        }
+
+        public async Task<bool> AddUserGroupRoleAsync(UpdateUserRoleInGroupDto dto, string userId)
+        {
+            var role = await _roleManager.FindByIdAsync(dto.RoleId.ToString());
+            if (role == null)
+            {
+                throw new NotFoundException("Role not found");
+            }
+
+            // Find the user group role
+            var userGroupRole =
+                await _userGroupRoleRepository.GetFirstOrDefaultAsync(x =>
+                    x.UserGroup.UserId == userId && x.UserGroup.GroupId == dto.GroupId && x.RoleId == role.Id
+                );
+
+            if (userGroupRole == null)
+            {
+                // create a new user group role if it does not exist
+
+                // get the role by name
+                var newRole = await _roleManager.FindByNameAsync("Member");
+
+                if (newRole == null)
+                {
+                    throw new NotFoundException("Role not found");
+                }
+
+                var UserGroup = await _userGroupRepository.GetFirstOrDefaultAsync(
+                    x => x.GroupId == dto.GroupId && x.UserId == userId
+                );
+
+                if (UserGroup == null)
+                {
+                    throw new NotFoundException("User group not found");
+                }
+
+                var newUserGroupRole = new UserGroupRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserGroupId = UserGroup.Id,
+                    RoleId = role.Id
+                };
+                await _userGroupRoleRepository.AddAsync(newUserGroupRole);
+                return true;
+            }
+            return false;
         }
     }
 }

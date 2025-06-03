@@ -24,5 +24,7 @@ namespace TalkVN.Application.Services.Interface
         Task RejectJoinGroupRequestAsync(RequestActionDto dto);
         Task AddUserToChatsAsync(Guid groupId, string userId);
         Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query);
+
+        Task UpdateUserRoleInGroupAsync(UpdateUserRoleInGroupDto dto);
     }
 }

@@ -77,6 +77,7 @@ namespace TalkVN.Application.Services
                 query => query.Include(g => g.Creator)
             );
 
+
             _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
             List<GroupDto> response = new();
             foreach (var group in paginationResponse.Items)
@@ -111,36 +112,6 @@ namespace TalkVN.Application.Services
         }
 
 
-        public async Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query)
-        {
-            var userId = _claimService.GetUserId();
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedAccessException("User not found");
-            }
-            _logger.LogInformation("GetUserJoinedGroupsAsync started for UserId: {UserId}", userId);
-
-            var paginationResponse = await _groupRepository.GetAllAsync(
-                g => g.UserGroups.Any(ug => ug.UserId == userId && ug.Status == GroupStatus.Active),
-                g => g.OrderByDescending(x => x.UpdatedOn),
-                query.PageIndex,
-                query.PageSize,
-                query => query.Include(g => g.Creator)
-            );
-
-            _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
-            List<GroupDto> response = new();
-            foreach (var group in paginationResponse.Items)
-            {
-                var groupDto = _mapper.Map<GroupDto>(group);
-                groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
-                response.Add(groupDto);
-            }
-
-            return response;
-        }
-
-
         public async Task<GroupDto> CreateGroupAsync(RequestCreateGroupDto request)
         {
             var userId = _claimService.GetUserId();
@@ -166,7 +137,7 @@ namespace TalkVN.Application.Services
             };
 
             await _groupRepository.AddAsync(group);
-            var ownerRole = await _roleManager.FindByNameAsync("Owner");
+            var ownerRole = await _roleManager.FindByNameAsync("GroupOwner");
             if (ownerRole == null)
                 throw new Exception("Role 'Owner' not found");
             //add owner to the group
@@ -180,6 +151,15 @@ namespace TalkVN.Application.Services
             await _userGroupRepository.AddAsync(member);
             var groupDto = _mapper.Map<GroupDto>(group);
             groupDto.Creator = _mapper.Map<UserDto>(await _userRepository.GetFirstOrDefaultAsync(x => x.Id == userId));
+
+            // add role for the owner
+            var userGroupRole = new UserGroupRole
+            {
+                UserGroupId = member.Id,
+                RoleId = ownerRole.Id,
+                Id = Guid.NewGuid()
+            };
+            await _userGroupRoleRepository.AddAsync(userGroupRole);
 
             //create default textChats
             var textChat = new TextChat
@@ -215,7 +195,7 @@ namespace TalkVN.Application.Services
             var groupchatParticipant = new TextChatParticipant
             {
                 UserId = userId,
-                TextChatId = groupChat.Id,
+                TextChatId = textChat.Id,
                 Status = GroupStatus.Active
             };
             await this._textChatParticipantRepository.AddAsync(groupchatParticipant);
@@ -326,7 +306,7 @@ namespace TalkVN.Application.Services
             request.UpdatedBy = ownerId;
             await _joinGroupRequestRepository.UpdateAsync(request);
 
-            // Tạo user group
+            // Tạo user group role
             var memberRole = await _roleManager.FindByNameAsync("Member");
             var newUserGroup = new UserGroup
             {
@@ -353,6 +333,92 @@ namespace TalkVN.Application.Services
             this._logger.LogInformation("User {UserId} approved join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
         }
 
+        public async Task AddUserToChatsAsync(Guid groupId, string userId)
+        {
+            List<TextChat> textChats = await _groupRepository.GetAllTextChatsByGroupIdAsync(groupId);
+            for(int i = 0; i < textChats.Count; i++)
+            {
+                _logger.LogWarning("No text chats found for group {GroupId}", groupId);
+                return;
+            }
+
+            var participants = textChats.Select(chat => new TextChatParticipant
+            {
+                UserId = userId,
+                TextChatId = chat.Id,
+                Status = GroupStatus.Active
+            }).ToList();
+
+            await _textChatParticipantRepository.AddRangeAsync(participants); //bulk insert
+            _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
+        }
+
+        public async Task UpdateUserRoleInGroupAsync(UpdateUserRoleInGroupDto dto)
+        {
+            var group = await _groupRepository.GetFirstOrDefaultAsync(x => x.Id == dto.GroupId);
+            if (group == null)
+            {
+                throw new NotFoundException("Group not found");
+            }
+
+            var UserGroup = await _userGroupRepository.GetFirstOrDefaultAsync(
+                x => x.GroupId == dto.GroupId && x.UserId == dto.UserId
+            );
+
+            if (UserGroup == null)
+            {
+                throw new NotFoundException("User group not found");
+            }
+
+            // Find the user group role
+            var userGroupRole =
+                await _userGroupRoleRepository.GetFirstOrDefaultAsync(x =>
+                    x.UserGroupId == UserGroup.Id
+                );
+
+            if (userGroupRole == null)
+            {
+                // create a new user group role if it does not exist
+
+                // get the role by name
+                var role = await _roleManager.FindByNameAsync("Member");
+
+                if (role == null)
+                {
+                    throw new NotFoundException("Role not found");
+                }
+
+                var newUserGroupRole = new UserGroupRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserGroupId = UserGroup.Id,
+                    RoleId = role.Id
+                };
+                await _userGroupRoleRepository.AddAsync(newUserGroupRole);
+                return;
+            }
+            // else update the role
+            // If the role is the same, no need to update
+            var updatedRole = await _roleManager.FindByIdAsync(dto.RoleId.ToString());
+
+            if (updatedRole == null)
+            {
+                throw new NotFoundException("Role not found");
+            }
+
+            if (userGroupRole.RoleId == updatedRole.Id)
+            {
+                // No update needed
+                _logger.LogInformation("User role in group {GroupId} for UserGroupId {UserGroupId} is already {RoleName}");
+                return;
+            }
+
+            // Update the role
+            userGroupRole.RoleId = updatedRole.Id;
+            await _userGroupRoleRepository.UpdateAsync(userGroupRole);
+            _logger.LogInformation("User Group Role updated");
+        }
+
         public async Task RejectJoinGroupRequestAsync(RequestActionDto dto)
         {
             var ownerId = _claimService.GetUserId();
@@ -375,29 +441,33 @@ namespace TalkVN.Application.Services
             _logger.LogInformation("User {UserId} rejected join request {RequestId} to group {GroupId}", ownerId, dto.JoinGroupRequestId, request.GroupId);
         }
 
-
-        public async Task AddUserToChatsAsync(Guid groupId, string userId)
+        public async Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query)
         {
-            List<TextChat> textChats = await _groupRepository.GetAllTextChatsByGroupIdAsync(groupId);
-
-            if(textChats.Count == 0)
+            var userId = _claimService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("No text chats found for group {GroupId}", groupId);
-                return;
+                throw new UnauthorizedAccessException("User not found");
+            }
+            _logger.LogInformation("GetUserJoinedGroupsAsync started for UserId: {UserId}", userId);
+
+            var paginationResponse = await _groupRepository.GetAllAsync(
+                g => g.UserGroups.Any(ug => ug.UserId == userId && ug.Status == GroupStatus.Active),
+                g => g.OrderByDescending(x => x.UpdatedOn),
+                query.PageIndex,
+                query.PageSize,
+                query => query.Include(g => g.Creator)
+            );
+
+            _logger.LogInformation("PaginationResponse: {PaginationResponse}", paginationResponse);
+            List<GroupDto> response = new();
+            foreach (var group in paginationResponse.Items)
+            {
+                var groupDto = _mapper.Map<GroupDto>(group);
+                groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
+                response.Add(groupDto);
             }
 
-            var participants = textChats.Select(chat => new TextChatParticipant
-            {
-                UserId = userId,
-                TextChatId = chat.Id,
-                Status = GroupStatus.Active
-            }).ToList();
-
-            await _textChatParticipantRepository.AddRangeAsync(participants); //bulk insert
-            _logger.LogInformation("User {UserId} added to chats of group {GroupId}", userId, groupId);
+            return response;
         }
-
-
     }
 }
-
