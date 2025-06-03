@@ -5,6 +5,7 @@ using TalkVN.Application.Models;
 using TalkVN.Application.Models.Dtos.Conversation;
 using TalkVN.Application.Models.Dtos.Message;
 using TalkVN.Application.Services.Interface;
+using TalkVN.Application.Models.Dtos.Permission;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -114,20 +115,23 @@ namespace TalkVN.WebAPI.Controllers
                 .Select(r => r.GroupId)
                 .FirstOrDefaultAsync();
 
-            bool canSendMessageInGroup = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_TEXT_CHANNEL.ToString(), groupId);
-            if (!canSendMessageInGroup)
+            if (groupId != null)
             {
-                return Unauthorized(new { message = "You do not have permission to send messages in this group." });
-            }
+                bool canSendMessageInGroup = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_TEXT_CHANNEL.ToString(), groupId);
+                if (!canSendMessageInGroup)
+                {
+                    return Unauthorized(new { message = "You do not have permission to send messages in this group." });
+                }
 
-            bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
-            if (!canSendMessageInSpecificChannel)
-            {
-                return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
+                bool canSendMessageInSpecificChannel = await _permissionService.HasPermissionAsync(userId, TalkVN.Domain.Enums.Permissions.SEND_MESSAGES_IN_SPECIFIC_TEXT_CHANNEL.ToString(), conversationId);
+                if (!canSendMessageInSpecificChannel)
+                {
+                    return Unauthorized(new { message = "You do not have permission to send messages in this specific conversation." });
+                }
             }
-
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.SendMessageAsync(conversationId, request)));
         }
+
         [HttpPut]
         [Route("{conversationId}")]
         [ProducesResponseType(typeof(ApiResult<ConversationDto>), StatusCodes.Status200OK)] // OK với ProductResponse
@@ -155,6 +159,53 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> DeleteConversationAsync(Guid conversationId, Guid messageId)
         {
             return Ok(ApiResult<MessageDto>.Success(await _conversationService.DeleteMessageAsync(messageId)));
+        }
+
+        [HttpPost("check")]
+        [AllowAnonymous] // or [Authorize], depending on your needs
+        public async Task<IActionResult> CheckPermission([FromBody] CheckPermissionRequestDto dto)
+        {
+            var userId = _claimService.GetUserId();
+            if (string.IsNullOrEmpty(dto.Action))
+            {
+                return BadRequest(new { allowed = false, reason = "Action is required" });
+            }
+
+            // Try to parse the action to your Permissions enum
+            if (!Enum.TryParse<TalkVN.Domain.Enums.Permissions>(dto.Action, out var permissionEnum))
+            {
+                return BadRequest(new { allowed = false, reason = "Invalid permission action" });
+            }
+
+            bool allowed = false;
+            string reason = null;
+
+            if (dto.ConversationId.HasValue)
+            {
+                // Get groupId from conversationId (TextChat)
+                var groupId = await _context.TextChats
+                    .Where(tc => tc.Id == dto.ConversationId.Value)
+                    .Select(tc => tc.GroupId)
+                    .FirstOrDefaultAsync();
+
+                if (groupId == null)
+                {
+                    return Ok(new { allowed = false, reason = "Conversation not found" });
+                }
+
+                allowed = await _permissionService.HasPermissionAsync(userId, dto.Action, groupId, dto.ConversationId.Value);
+                if (!allowed)
+                    reason = "You do not have this permission in this conversation";
+            }
+            else
+            {
+                // Check global/group permission (no conversation context)
+                allowed = await _permissionService.HasPermissionAsync(userId, dto.Action);
+                if (!allowed)
+                    reason = "You do not have this permission";
+            }
+
+            return Ok(new { allowed, reason });
         }
     }
 }
