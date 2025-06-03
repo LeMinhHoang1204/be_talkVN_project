@@ -134,6 +134,27 @@ namespace TalkVN.DataAccess.Repositories
             return await this.GetPaginationEntities(query, pageIndex, pageSize);
         }
 
+
+        public async Task<PaginationResponse<TEntity>> GetAllAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
+            int pageIndex,
+            int pageSize,
+            params Func<IQueryable<TEntity>, IQueryable<TEntity>>[] includes)
+        {
+            var query = DbSet.Where(predicate);
+
+            foreach (var include in includes)
+            {
+                query = include(query);
+            }
+
+            query = sort(query);
+
+            return await this.GetPaginationEntities(query, pageIndex, pageSize);
+        }
+
+
         public async Task<PaginationResponse<TEntity>> GetAllAsync(
             Expression<Func<TEntity, bool>> predicate,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
