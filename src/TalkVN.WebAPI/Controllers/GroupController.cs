@@ -72,6 +72,7 @@ namespace TalkVN.WebAPI.Controllers
 
         [HttpGet]
         [Route("{groupId}")]
+        [ProducesResponseType(typeof(ApiResult<TextChatDto>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllTextChatsByGroupIdAsync(Guid groupId, [FromQuery] PaginationFilter pagination)
         {
             var textChats = await _groupService.GetAllTextChatsByGroupIdAsync(groupId, pagination);
@@ -89,6 +90,7 @@ namespace TalkVN.WebAPI.Controllers
 
 
         [HttpGet("search-by-usernames")]
+        [ProducesResponseType(typeof(ApiResult<List<UserDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUsersByUsernamesAsync([FromQuery] string usernames, [FromQuery] PaginationFilter pagination)
         {
             if (string.IsNullOrWhiteSpace(usernames))
@@ -295,17 +297,6 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> GetJoinGroupRequestsByGroupIdAsync(Guid groupId)
         {
             var userId = _claimService.GetUserId();
-
-            // bool canViewRequests = await _permissionService.HasPermissionAsync(
-            //     userId,
-            //     TalkVN.Domain.Enums.Permissions.VIEW_JOIN_GROUP_REQUESTS.ToString(),
-            //     groupId
-            // );
-
-            // if (!canViewRequests)
-            // {
-            //     return Unauthorized(new { message = "You do not have permission to view join group requests." });
-            // }
 
             var requests = await _groupService.GetJoinGroupRequestsByGroupIdAsync(groupId);
             return Ok(ApiResult<List<JoinGroupRequestDto>>.Success(requests));
