@@ -135,17 +135,17 @@ namespace TalkVN.WebAPI.Controllers
         [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
         {
-            var userId = _claimService.GetUserId();
-            bool canDeleteAnyMessage = await _permissionService.HasPermissionAsync(
-                userId,
-                TalkVN.Domain.Enums.Permissions.INVITE_TO_JOINED_GROUP.ToString(),
-                groupId
-            );
+            // var userId = _claimService.GetUserId();
+            // bool canCreateInvitation = await _permissionService.HasPermissionAsync(
+            //     userId,
+            //     TalkVN.Domain.Enums.Permissions.INVITE_TO_JOINED_GROUP.ToString(),
+            //     groupId
+            // );
 
-            if (!canDeleteAnyMessage)
-            {
-                return Unauthorized(new { message = "You do not have permission to invite members to this group." });
-            }
+            // if (!canCreateInvitation)
+            // {
+            //     return Unauthorized(new { message = "You do not have permission to invite members to this group." });
+            // }
 
             var result = await _groupInvitationService.CreateGroupInvitationAsync(groupId, userId);
             return Ok(ApiResult<GroupInvitationDto>.Success(result));
