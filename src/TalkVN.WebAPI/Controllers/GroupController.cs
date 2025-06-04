@@ -135,7 +135,7 @@ namespace TalkVN.WebAPI.Controllers
         [ProducesResponseType(typeof(ApiResult<GroupInvitationDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateGroupInvitationAsync(Guid groupId)
         {
-            // var userId = _claimService.GetUserId();
+            var userId = _claimService.GetUserId();
             // bool canCreateInvitation = await _permissionService.HasPermissionAsync(
             //     userId,
             //     TalkVN.Domain.Enums.Permissions.INVITE_TO_JOINED_GROUP.ToString(),
