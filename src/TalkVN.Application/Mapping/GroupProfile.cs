@@ -13,5 +13,6 @@ public class GroupProfile : Profile
         CreateMap<UserGroupRole, UserGroupRoleDto>();
         CreateMap<GroupInvitation, GroupInvitationDto>();
         CreateMap<UserGroup, UserGroupDto>();
+        CreateMap<JoinGroupRequest, JoinGroupRequestDto>();
     }
 }

@@ -58,8 +58,6 @@ namespace TalkVN.WebAPI.Controllers
         public async Task<IActionResult> GetUserJoinedGroupsAsync([FromQuery] PaginationFilter pagination)
         {
             var pagedGroups = await _groupService.GetUserJoinedGroupsAsync(pagination);
-            if (pagedGroups == null || !pagedGroups.Any())
-                return NotFound("No groups found for the user");
             return Ok(ApiResult<List<GroupDto>>.Success(pagedGroups));
         }
 
@@ -74,6 +72,7 @@ namespace TalkVN.WebAPI.Controllers
 
         [HttpGet]
         [Route("{groupId}")]
+        [ProducesResponseType(typeof(ApiResult<TextChatDto>), StatusCodes.Status200OK)] // OK với ProductResponse
         public async Task<IActionResult> GetAllTextChatsByGroupIdAsync(Guid groupId, [FromQuery] PaginationFilter pagination)
         {
             var textChats = await _groupService.GetAllTextChatsByGroupIdAsync(groupId, pagination);
@@ -91,6 +90,7 @@ namespace TalkVN.WebAPI.Controllers
 
 
         [HttpGet("search-by-usernames")]
+        [ProducesResponseType(typeof(ApiResult<List<UserDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUsersByUsernamesAsync([FromQuery] string usernames, [FromQuery] PaginationFilter pagination)
         {
             if (string.IsNullOrWhiteSpace(usernames))
@@ -163,10 +163,10 @@ namespace TalkVN.WebAPI.Controllers
 
         [HttpPost]
         [Route("request-join-group")]
-        public async Task<IActionResult> RequestJoinGroupAsync([FromBody] JoinGroupRequestDto dto)
+        public async Task<IActionResult> RequestJoinGroupAsync([FromBody] ActionJoinGroupRequestDto dto)
         {
             var result = await _groupService.RequestJoinGroupAsync(dto);
-            return Ok(ApiResult<JoinGroupRequestDto>.Success(result));
+            return Ok(ApiResult<ActionJoinGroupRequestDto>.Success(result));
         }
 
         // Approve join group request
@@ -289,6 +289,17 @@ namespace TalkVN.WebAPI.Controllers
             await _permissionService.OverridePermissionAsync(dto.UserId, dto.PermissionId, dto.TextChatId, dto.IsAllowed);
 
             return Ok(ApiResult<string>.Success("Override permission added/updated successfully"));
+        }
+
+        [HttpGet]
+        [Route("get-join-group-requests")]
+        [ProducesResponseType(typeof(ApiResult<List<JoinGroupRequestDto>>), StatusCodes.Status200OK)] // OK với ProductResponse
+        public async Task<IActionResult> GetJoinGroupRequestsByGroupIdAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+
+            var requests = await _groupService.GetJoinGroupRequestsByGroupIdAsync(groupId);
+            return Ok(ApiResult<List<JoinGroupRequestDto>>.Success(requests));
         }
     }
 }

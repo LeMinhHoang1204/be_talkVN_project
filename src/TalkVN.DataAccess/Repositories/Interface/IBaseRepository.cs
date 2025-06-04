@@ -32,6 +32,12 @@ namespace TalkVN.DataAccess.Repositories.Interface
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
             IEnumerable<Expression<Func<TEntity, BaseEntity>>> includes);
 
+
+        Task<List<TEntity>> GetAllAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
+            params Func<IQueryable<TEntity>, IQueryable<TEntity>>[] includes);
+
         Task<PaginationResponse<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort, int pageIndex, int pageSize);
 

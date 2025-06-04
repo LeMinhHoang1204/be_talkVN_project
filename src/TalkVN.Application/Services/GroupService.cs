@@ -272,7 +272,7 @@ namespace TalkVN.Application.Services
         }
 
 
-        public async Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto request)
+        public async Task<ActionJoinGroupRequestDto> RequestJoinGroupAsync(ActionJoinGroupRequestDto request)
         {
             var userId = _claimService.GetUserId();
             if (userId == null)
@@ -300,7 +300,7 @@ namespace TalkVN.Application.Services
                 Status = JoinRequestStatus.Pending.ToString()
             };
             await _joinGroupRequestRepository.AddAsync(newRequest);
-            var requestDto = new JoinGroupRequestDto
+            var requestDto = new ActionJoinGroupRequestDto
             {
                 GroupId = newRequest.GroupId,
                 InvitationCode = invitation.InvitationCode,
@@ -491,6 +491,66 @@ namespace TalkVN.Application.Services
                 groupDto.Creator = _mapper.Map<UserDto>(group.Creator);
                 response.Add(groupDto);
             }
+
+            return response;
+        }
+
+        public async Task<List<JoinGroupRequestDto>> GetJoinGroupRequestsByGroupIdAsync(Guid groupId)
+        {
+            var userId = _claimService.GetUserId();
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            var group = await _groupRepository.GetFirstOrDefaultAsync(x => x.Id == groupId);
+            if (group == null)
+            {
+                throw new NotFoundException("Group not found");
+            }
+
+            if (group.CreatorId != userId)
+            {
+                throw new UnauthorizedAccessException("Only group owner can view join requests");
+            }
+
+            var requests = await _joinGroupRequestRepository.GetAllAsync(
+                x => x.GroupId == groupId && x.Status == JoinRequestStatus.Pending.ToString(),
+                x => x.OrderByDescending(r => r.CreatedOn),
+                query => query.Include(r => r.RequestedUser),
+                query => query.Include(r => r.Invitation)
+                    .ThenInclude(i => i.Inviter)
+            );
+
+            var response = requests.Select(r => new JoinGroupRequestDto
+            {
+                Id = r.Id,
+                GroupId = r.GroupId,
+                InvitationCode = r.Invitation?.InvitationCode,
+                User = new UserDto
+                {
+                    Id = r.RequestedUser.Id,
+                    DisplayName = r.RequestedUser.DisplayName,
+                    AvatarUrl = r.RequestedUser.AvatarUrl
+                },
+                GroupInvitation = r.Invitation != null
+                    ? new GroupInvitationDto
+                    {
+                        Id = r.Invitation.Id,
+                        InvitationCode = r.Invitation.InvitationCode,
+                        ExpirationDate = r.Invitation.ExpirationDate,
+                        CreatedDate = r.Invitation.CreatedOn,
+                        GroupId = r.Invitation.GroupId,
+                        InviterId = r.Invitation.InviterId,
+                        Inviter = r.Invitation.Inviter != null ? new UserDto
+                        {
+                            Id = r.Invitation.Inviter.Id,
+                            DisplayName = r.Invitation.Inviter.DisplayName ?? string.Empty,
+                            AvatarUrl = r.Invitation.Inviter.AvatarUrl
+                        } : null
+                    }
+                    : null
+            }).ToList();
 
             return response;
         }

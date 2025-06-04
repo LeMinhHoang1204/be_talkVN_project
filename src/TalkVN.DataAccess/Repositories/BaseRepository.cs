@@ -107,6 +107,33 @@ namespace TalkVN.DataAccess.Repositories
             return await query.ToListAsync();
         }
 
+        public async Task<List<TEntity>> GetAllAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort,
+            params Func<IQueryable<TEntity>, IQueryable<TEntity>>[] includes)
+        {
+            var query = DbSet.AsQueryable();
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            foreach (var include in includes)
+            {
+                query = include(query);
+            }
+
+            if (sort != null)
+            {
+                query = sort(query);
+            }
+
+            return await query.ToListAsync();
+        }
+
+
+
         public async Task<PaginationResponse<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate,
            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> sort, int pageIndex, int pageSize)
         {
