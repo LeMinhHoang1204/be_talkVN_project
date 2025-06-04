@@ -172,6 +172,7 @@ namespace TalkVN.WebAPI.Controllers
         // Approve join group request
         [HttpPut]
         [Route("approve-join-request")]
+        [ProducesResponseType(typeof(ApiResult<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ApproveJoinGroupRequestAsync([FromBody] RequestActionDto dto)
         {
             var userId = _claimService.GetUserId();
