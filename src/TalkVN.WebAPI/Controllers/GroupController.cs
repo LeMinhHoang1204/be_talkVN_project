@@ -201,6 +201,7 @@ namespace TalkVN.WebAPI.Controllers
 
         [HttpPut]
         [Route("reject-join-request")]
+        [ProducesResponseType(typeof(ApiResult<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> RejectJoinGroupRequestAsync([FromBody] RequestActionDto dto)
         {
             await _groupService.RejectJoinGroupRequestAsync(dto);
