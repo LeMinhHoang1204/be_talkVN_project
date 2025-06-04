@@ -18,7 +18,7 @@ namespace TalkVN.Application.Services.Interface
 
         Task<List<UserDto>> GetUsersByUsernamesAsync(List<string> usernames, PaginationFilter query);
 
-        Task<JoinGroupRequestDto> RequestJoinGroupAsync(JoinGroupRequestDto dto);
+        Task<ActionJoinGroupRequestDto> RequestJoinGroupAsync(ActionJoinGroupRequestDto dto);
         Task ApproveJoinGroupRequestAsync(RequestActionDto dto);
 
         Task RejectJoinGroupRequestAsync(RequestActionDto dto);
@@ -26,5 +26,6 @@ namespace TalkVN.Application.Services.Interface
         Task<List<GroupDto>> GetUserJoinedGroupsAsync(PaginationFilter query);
 
         Task UpdateUserRoleInGroupAsync(UpdateUserRoleInGroupDto dto);
+        Task<List<JoinGroupRequestDto>> GetJoinGroupRequestsByGroupIdAsync(Guid groupId);
     }
 }

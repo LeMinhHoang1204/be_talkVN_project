@@ -1,4 +1,7 @@
-﻿namespace TalkVN.Application.Models.Dtos.Group;
+﻿using TalkVN.Application.Models.Dtos.User;
+using TalkVN.Domain.Identity;
+
+namespace TalkVN.Application.Models.Dtos.Group;
 
 public class GroupInvitationDto : BaseResponseDto
 {
@@ -8,4 +11,6 @@ public class GroupInvitationDto : BaseResponseDto
     public DateTime CreatedDate { get; set; }
     public Guid GroupId { get; set; }
     public string InviterId { get; set; }
+
+    public UserDto Inviter { get; set; } // Navigation property to the inviter user
 }
